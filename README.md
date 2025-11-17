@@ -242,16 +242,16 @@ When the app loads, regardless of whether a user is logged in or not, they can a
 
 ### 2.6. Feature Set 6. Advanced Features (7%)
 
-#### 2.6.2 Listing Profits Graph
+#### 2.6.1 Listing Profits Graph
 
 - On the screen described in 2.2.1, a graph of how much profit the user has made from all their listings for the past month must be displayed. The X axis should be "how many days ago" (0-30), and the Y axis should be the $$ made on that particular day (sum of income from all listings).
 
-#### 2.6.3. Listing Upload 🙉🙉🙉
+#### 2.6.2. Listing Upload 🙉🙉🙉
 
 - For `2.2.1`, when a new listing is created, the user can optionally upload a .json file containing the full data for a listing. The data structure is validated on the frontend before being passed to the backend normally.
 - If you implement this feature, you must attach an example .json into your repo in the project folder. This file must have name `2.6.json`. This is so we can actually test that it works while marking.
 
-#### 2.6.4. Live Notifications 🙉🙉🙉
+#### 2.6.3. Live Notifications 🙉🙉🙉
 
 The system must support live, in-app notifications for logged-in users. This should be done with some kind of polling.
 

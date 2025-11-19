@@ -116,6 +116,28 @@ export default function CreateListing() {
                     inputProps={{ min: 0, step: 0.01 }}
                 />
 
+                <Button
+                    variant="outlined"
+                    component="label"
+                    fullWidth
+                    sx={{ mt: 2, mb: 2 }}
+                >
+                    Upload Thumbnail Image
+                    <input
+                        type="file"
+                        hidden
+                        accept="image/*"
+                        onChange={handleThumbnailUpload}
+                    />
+                </Button>
+                {formData.thumbnail && (
+                    <Box sx={{ mb: 2 }}>
+                        <img src={formData.thumbnail} alt="Thumbnail preview" style={{
+                            maxWidth: '200px', maxHeight: '150px'
+                        }} />
+                    </Box>
+                )}
+
                 <TextField
                     fullWidth
                     label="Property Type"
@@ -134,6 +156,55 @@ export default function CreateListing() {
                     margin="normal"
                     inputProps={{ min: 0 }}
                 />
+
+                <Box sx={{ mt: 3, mb: 3 }}>
+                    <BedroomInput
+                        bedrooms={formData.bedrooms}
+                        onChange={(bedrooms) => handleChange('bedrooms', bedrooms)}
+                    />
+                </Box>
+
+                <FormControl fullWidth margin="normal">
+                    <InputLabel>Amenities</InputLabel>
+                    <Select
+                        multiple
+                        value={formData.amenities}
+                        onChange={(e) => handleChange('amenities', e.target.value)}
+                        input={<OutlinedInput label="Amenities" />}
+                        renderValue={(selected) => (
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                {selected.map((value) => (
+                                    <Chip key={value} label={value} size="small" />
+                                ))}
+                            </Box>
+                        )}
+                    >
+                        {AMENITIES_OPTIONS.map((amenity) => (
+                            <MenuItem key={amenity} value={amenity}>
+                                {amenity}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+
+                <Box sx={{ mt: 4, display: 'flex', gap: 2 }}>
+                    <Button
+                        type="submit"
+                        variant="contained"
+                        size="large"
+                        fullWidth
+                    >
+                        Create Listing
+                    </Button>
+                    <Button
+                        variant="outlined"
+                        size="large"
+                        onClick={() => navigate('/hosted')}
+                        fullWidth
+                    >
+                        Cancel
+                    </Button>
+                </Box>
             </Box>
         </Container>
     );

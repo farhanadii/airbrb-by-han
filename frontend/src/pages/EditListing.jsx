@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
     Container, TextField, Button, Typography, Box, Alert,
-    FormControl, InputLabel, Select, MenuItem, Chip, OutlinedInput
+    FormControl, InputLabel, Select, MenuItem, Chip, OutlinedInput,
+    IconButton, Grid
 } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { getListing, updateListing } from '../services/api';
 import BedroomInput from '../components/listings/BedroomInput';
 
@@ -171,6 +173,113 @@ export default function EditListing() {
                     margin="normal"
                     inputProps={{ min: 0, step: 0.01 }}
                 />
+
+                <Button variant="outlined" component="label" fullWidth sx={{
+                    mt: 2,
+                    mb: 2
+                }}>
+                    Update Thumbnail Image
+                    <input type="file" hidden accept="image/*"
+                        onChange={handleThumbnailUpload} />
+                </Button>
+                {formData.thumbnail && (
+                    <Box sx={{ mb: 2 }}>
+                        <img src={formData.thumbnail} alt="Thumbnail" style={{
+                            maxWidth:
+                                '200px', maxHeight: '150px'
+                        }} />
+                    </Box>
+                )}
+
+                <TextField
+                    fullWidth
+                    label="Property Type"
+                    value={formData.propertyType}
+                    onChange={(e) => handleChange('propertyType', e.target.value)}
+                    margin="normal"
+                    placeholder="e.g. House, Apartment, Villa"
+                />
+
+                <TextField
+                    fullWidth
+                    label="Number of Bathrooms"
+                    type="number"
+                    value={formData.bathrooms}
+                    onChange={(e) => handleChange('bathrooms', e.target.value)}
+                    margin="normal"
+                    inputProps={{ min: 0 }}
+                />
+
+                <Box sx={{ mt: 3, mb: 3 }}>
+                    <BedroomInput
+                        bedrooms={formData.bedrooms}
+                        onChange={(bedrooms) => handleChange('bedrooms', bedrooms)}
+                    />
+                </Box>
+
+                <FormControl fullWidth margin="normal">
+                    <InputLabel>Amenities</InputLabel>
+                    <Select
+                        multiple
+                        value={formData.amenities}
+                        onChange={(e) => handleChange('amenities', e.target.value)}
+                        input={<OutlinedInput label="Amenities" />}
+                        renderValue={(selected) => (
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                {selected.map((value) => (
+                                    <Chip key={value} label={value} size="small" />
+                                ))}
+                            </Box>
+                        )}
+                    >
+                        {AMENITIES_OPTIONS.map((amenity) => (
+                            <MenuItem key={amenity} value={amenity}>{amenity}</MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+
+                <Box sx={{ mt: 3 }}>
+                    <Typography variant="subtitle1" gutterBottom>Property
+                        Images</Typography>
+                    <Button variant="outlined" component="label" fullWidth>
+                        Add More Images
+                        <input type="file" hidden multiple accept="image/*"
+                            onChange={handleImageUpload} />
+                    </Button>
+
+                    <Grid container spacing={2} sx={{ mt: 1 }}>
+                        {formData.images.map((image, index) => (
+                            <Grid item xs={6} sm={4} key={index}>
+                                <Box sx={{ position: 'relative' }}>
+                                    <img src={image} alt={`Property ${index + 1}`} style={{
+                                        width: '100%', height: '150px', objectFit: 'cover'
+                                    }} />
+                                    <IconButton
+                                        size="small"
+                                        color="error"
+                                        onClick={() => removeImage(index)}
+                                        sx={{
+                                            position: 'absolute', top: 5, right: 5, bgcolor:
+                                                'white'
+                                        }}
+                                    >
+                                        <DeleteIcon fontSize="small" />
+                                    </IconButton>
+                                </Box>
+                            </Grid>
+                        ))}
+                    </Grid>
+                </Box>
+
+                <Box sx={{ mt: 4, display: 'flex', gap: 2 }}>
+                    <Button type="submit" variant="contained" size="large" fullWidth>
+                        Save Changes
+                    </Button>
+                    <Button variant="outlined" size="large" onClick={() =>
+                        navigate('/hosted')} fullWidth>
+                        Cancel
+                    </Button>
+                </Box>
             </Box>
         </Container>
     );

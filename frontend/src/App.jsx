@@ -5,10 +5,10 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import HostedListings from './pages/HostedListings';
 import CreateListing from './pages/CreateListing';
+import EditListing from './pages/EditListing';
 
 // Temporary placeholder components - we'll create these in future commits
 const AllListings = () => <div>All Listings - Coming Soon</div>;
-const EditListing = () => <div>Edit Listing - Coming Soon</div>;
 const ViewListing = () => <div>View Listing - Coming Soon</div>;
 const BookingRequests = () => <div>Booking Requests - Coming Soon</div>;
 

@@ -1,34 +1,35 @@
-import { useState } from 'react';
-import reactLogo from './assets/react.svg';
-import viteLogo from '/vite.svg';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import NavBar from './components/navigation/NavBar';
+import Login from './pages/Login';
+import Register from './pages/Register';
+
+// Temporary placeholder components - we'll create these in future commits
+const AllListings = () => <div>All Listings - Coming Soon</div>;
+const HostedListings = () => <div>Hosted Listings - Coming Soon</div>;
+const EditListing = () => <div>Edit Listing - Coming Soon</div>;
+const ViewListing = () => <div>View Listing - Coming Soon</div>;
+const BookingRequests = () => <div>Booking Requests - Coming Soon</div>;
 
 function App() {
-  const [count, setCount] = useState(0);
-  
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank" rel="noreferrer noopener">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank" rel="noreferrer noopener">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button id="counter" onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <AuthProvider>
+      <BrowserRouter>
+        <NavBar />
+        <Routes>
+          <Route path="/" element={<AllListings />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/hosted" element={<HostedListings />} />
+          <Route path="/listings/:id" element={<ViewListing />} />
+          <Route path="/listings/:id/edit" element={<EditListing />} />
+          <Route path="/listings/:id/bookings" element={<BookingRequests />}
+          />
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
+  );
 }
 
-export default App
+export default App;

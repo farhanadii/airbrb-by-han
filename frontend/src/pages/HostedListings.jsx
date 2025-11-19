@@ -1,16 +1,20 @@
 import { useState, useEffect } from 'react';
-import { Container, Grid, Typography, Button, Box, Alert } from
+import { Container, Grid, Typography, Button, Box, Alert, Chip } from
     '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { useNavigate } from 'react-router-dom';
-import { getAllListings, deleteListing } from '../services/api';
+import { getAllListings, deleteListing, publishListing, unpublishListing }
+    from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import ListingCard from '../components/listings/ListingCard';
+import PublishModal from '../components/listings/PublishModal';
 
 export default function HostedListings() {
     const [listings, setListings] = useState([]);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(true);
+    const [publishModalOpen, setPublishModalOpen] = useState(false);
+    const [selectedListing, setSelectedListing] = useState(null);
     const { userEmail } = useAuth();
     const navigate = useNavigate();
 
@@ -18,7 +22,6 @@ export default function HostedListings() {
         try {
             setLoading(true);
             const data = await getAllListings();
-            // Filter to only show listings owned by current user
             const myListings = data.listings.filter(listing => listing.owner ===
                 userEmail);
             setListings(myListings);
@@ -46,6 +49,32 @@ export default function HostedListings() {
         }
     };
 
+    const handlePublishClick = (listing) => {
+        setSelectedListing(listing);
+        setPublishModalOpen(true);
+    };
+
+    const handlePublish = async (availabilities) => {
+        try {
+            await publishListing(selectedListing.id, availabilities);
+            await fetchMyListings();
+        } catch (err) {
+            setError(err.message || 'Failed to publish listing');
+        }
+    };
+
+    const handleUnpublish = async (id) => {
+        if (!window.confirm('Are you sure you want to unpublish this listing?'))
+            return;
+
+        try {
+            await unpublishListing(id);
+            await fetchMyListings();
+        } catch (err) {
+            setError(err.message || 'Failed to unpublish listing');
+        }
+    };
+
     return (
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
             <Box sx={{
@@ -67,21 +96,58 @@ export default function HostedListings() {
             {loading ? (
                 <Typography>Loading...</Typography>
             ) : listings.length === 0 ? (
-                <Typography>You don't have any listings yet. Create one to get
+                <Typography>You don&apos;t have any listings yet. Create one to get
                     started!</Typography>
             ) : (
                 <Grid container spacing={3}>
                     {listings.map((listing) => (
                         <Grid item xs={12} sm={6} md={4} key={listing.id}>
-                            <ListingCard
-                                listing={listing}
-                                onDelete={handleDelete}
-                                isHostView={true}
-                            />
+                            <Box>
+                                <ListingCard
+                                    listing={listing}
+                                    onDelete={handleDelete}
+                                    isHostView={true}
+                                />
+                                <Box sx={{
+                                    mt: 1, display: 'flex', gap: 1, justifyContent:
+                                        'center'
+                                }}>
+                                    {listing.published ? (
+                                        <>
+                                            <Chip label="Published" color="success" size="small"
+                                            />
+                                            <Button
+                                                size="small"
+                                                variant="outlined"
+                                                color="warning"
+                                                onClick={() => handleUnpublish(listing.id)}
+                                            >
+                                                Unpublish
+                                            </Button>
+                                        </>
+                                    ) : (
+                                        <Button
+                                            size="small"
+                                            variant="contained"
+                                            color="primary"
+                                            onClick={() => handlePublishClick(listing)}
+                                        >
+                                            Publish
+                                        </Button>
+                                    )}
+                                </Box>
+                            </Box>
                         </Grid>
                     ))}
                 </Grid>
             )}
+
+            <PublishModal
+                open={publishModalOpen}
+                onClose={() => setPublishModalOpen(false)}
+                onPublish={handlePublish}
+                listingTitle={selectedListing?.title || ''}
+            />
         </Container>
     );
 }

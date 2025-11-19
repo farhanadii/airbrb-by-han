@@ -4,6 +4,7 @@ import NavBar from './components/navigation/NavBar';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import HostedListings from './pages/HostedListings';
+import CreateListing from './pages/CreateListing';
 
 // Temporary placeholder components - we'll create these in future commits
 const AllListings = () => <div>All Listings - Coming Soon</div>;
@@ -21,6 +22,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/hosted" element={<HostedListings />} />
+          <Route path="/hosted/new" element={<CreateListing />} />
           <Route path="/listings/:id" element={<ViewListing />} />
           <Route path="/listings/:id/edit" element={<EditListing />} />
           <Route path="/listings/:id/bookings" element={<BookingRequests />}

@@ -96,14 +96,14 @@ export default function CreateListing() {
   };
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
-      <Typography variant="h4" gutterBottom>
+    <Container maxWidth="md" sx={{ px: { xs: 2, sm: 3 }, mt: { xs: 2, sm: 3, md: 4 }, mb: { xs: 3, sm: 4 } }}>
+      <Typography variant="h4" gutterBottom sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
                 Create New Listing
       </Typography>
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-      <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
+      <Box component="form" onSubmit={handleSubmit} sx={{ mt: { xs: 2, sm: 3 } }}>
         <TextField
           fullWidth
           required
@@ -134,7 +134,7 @@ export default function CreateListing() {
           inputProps={{ min: 0, step: 0.01 }}
         />
 
-        <Box sx={{ mt: 3, mb: 2 }}>
+        <Box sx={{ mt: { xs: 2, sm: 3 }, mb: 2 }}>
           <Tabs value={thumbnailTab} onChange={(e, v) => setThumbnailTab(v)}>
             <Tab label="Image Upload" />
             <Tab label="YouTube Video" />
@@ -152,7 +152,7 @@ export default function CreateListing() {
               {formData.thumbnail && !formData.youtubeUrl && (
                 <Box sx={{ mt: 2 }}>
                   <img src={formData.thumbnail} alt="Thumbnail preview"
-                    style={{ maxWidth: '200px', maxHeight: '150px' }} />
+                    style={{ maxWidth: '100%', maxHeight: '150px' }} />
                 </Box>
               )}
             </>
@@ -173,12 +173,12 @@ export default function CreateListing() {
               {formData.youtubeUrl && (
                 <Box sx={{ mt: 2 }}>
                   <iframe
-                    width="300"
+                    width="100%"
                     height="200"
                     src={extractYouTubeEmbedUrl(formData.youtubeUrl)}
                     title="YouTube preview"
                     frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; 
+                    allow="accelerometer; autoplay; clipboard-write;
   encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                   />
@@ -207,7 +207,7 @@ export default function CreateListing() {
           inputProps={{ min: 0 }}
         />
 
-        <Box sx={{ mt: 3, mb: 3 }}>
+        <Box sx={{ mt: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
           <BedroomInput
             bedrooms={formData.bedrooms}
             onChange={(bedrooms) => handleChange('bedrooms', bedrooms)}
@@ -237,7 +237,7 @@ export default function CreateListing() {
           </Select>
         </FormControl>
 
-        <Box sx={{ mt: 4, display: 'flex', gap: 2 }}>
+        <Box sx={{ mt: { xs: 3, sm: 4 }, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
           <Button type="submit" variant="contained" size="large" fullWidth>
                         Create Listing
           </Button>

@@ -158,19 +158,19 @@ export default function EditListing() {
 
   if (loading) {
     return <Container sx={{
-      mt: 4
+      px: { xs: 2, sm: 3 }, mt: { xs: 2, sm: 3, md: 4 }
     }}><Typography>Loading...</Typography></Container>;
   }
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
-      <Typography variant="h4" gutterBottom>
+    <Container maxWidth="md" sx={{ px: { xs: 2, sm: 3 }, mt: { xs: 2, sm: 3, md: 4 }, mb: { xs: 3, sm: 4 } }}>
+      <Typography variant="h4" gutterBottom sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
                 Edit Listing
       </Typography>
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-      <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
+      <Box component="form" onSubmit={handleSubmit} sx={{ mt: { xs: 2, sm: 3 } }}>
         <TextField
           fullWidth
           required
@@ -201,7 +201,7 @@ export default function EditListing() {
           inputProps={{ min: 0, step: 0.01 }}
         />
 
-        <Box sx={{ mt: 3, mb: 2 }}>
+        <Box sx={{ mt: { xs: 2, sm: 3 }, mb: 2 }}>
           <Tabs value={thumbnailTab} onChange={(e, v) => setThumbnailTab(v)}>
             <Tab label="Image Upload" />
             <Tab label="YouTube Video" />
@@ -219,7 +219,7 @@ export default function EditListing() {
               {formData.thumbnail && !formData.youtubeUrl && (
                 <Box sx={{ mt: 2 }}>
                   <img src={formData.thumbnail} alt="Thumbnail" style={{
-                    maxWidth: '200px', maxHeight: '150px'
+                    maxWidth: '100%', maxHeight: '150px'
                   }} />
                 </Box>
               )}
@@ -241,12 +241,12 @@ export default function EditListing() {
               {formData.youtubeUrl && (
                 <Box sx={{ mt: 2 }}>
                   <iframe
-                    width="300"
+                    width="100%"
                     height="200"
                     src={extractYouTubeEmbedUrl(formData.youtubeUrl)}
                     title="YouTube preview"
                     frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; 
+                    allow="accelerometer; autoplay; clipboard-write;
   encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                   />
@@ -275,7 +275,7 @@ export default function EditListing() {
           inputProps={{ min: 0 }}
         />
 
-        <Box sx={{ mt: 3, mb: 3 }}>
+        <Box sx={{ mt: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
           <BedroomInput bedrooms={formData.bedrooms} onChange={(bedrooms) =>
             handleChange('bedrooms', bedrooms)} />
         </Box>
@@ -301,8 +301,8 @@ export default function EditListing() {
           </Select>
         </FormControl>
 
-        <Box sx={{ mt: 3 }}>
-          <Typography variant="subtitle1" gutterBottom>Property
+        <Box sx={{ mt: { xs: 2, sm: 3 } }}>
+          <Typography variant="subtitle1" gutterBottom sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>Property
                         Images</Typography>
           <Button variant="outlined" component="label" fullWidth>
                         Add More Images
@@ -310,7 +310,7 @@ export default function EditListing() {
               onChange={handleImageUpload} />
           </Button>
 
-          <Grid container spacing={2} sx={{ mt: 1 }}>
+          <Grid container spacing={{ xs: 1, sm: 2 }} sx={{ mt: 1 }}>
             {formData.images.map((image, index) => (
               <Grid item xs={6} sm={4} key={index}>
                 <Box sx={{ position: 'relative' }}>
@@ -334,7 +334,7 @@ export default function EditListing() {
           </Grid>
         </Box>
 
-        <Box sx={{ mt: 4, display: 'flex', gap: 2 }}>
+        <Box sx={{ mt: { xs: 3, sm: 4 }, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
           <Button type="submit" variant="contained" size="large" fullWidth>
                         Save Changes
           </Button>

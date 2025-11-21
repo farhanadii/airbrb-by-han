@@ -1,122 +1,121 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import {
-    Container, Typography, Box, Alert, Grid, Chip,
-    Paper, Divider, ImageList, ImageListItem, Button
+  Container, Typography, Box, Alert, Grid, Chip,
+  Paper, Divider, ImageList, ImageListItem, Button
 } from '@mui/material';
 import BedIcon from '@mui/icons-material/Bed';
 import BathtubIcon from '@mui/icons-material/Bathtub';
 import HomeIcon from '@mui/icons-material/Home';
 import { getListing, getAllBookings, makeBooking, leaveReview } from
-    '../services/api';
+  '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import RatingBreakdown from '../components/common/RatingBreakdown';
 import BookingModal from '../components/bookings/BookingModal';
 import ReviewModal from '../components/bookings/ReviewModal';
 
 export default function ViewListing() {
-    const { id } = useParams();
-    const [listing, setListing] = useState(null);
-    const [userBookings, setUserBookings] = useState([]);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
-    const [loading, setLoading] = useState(true);
-    const [bookingModalOpen, setBookingModalOpen] = useState(false);
-    const [reviewModalOpen, setReviewModalOpen] = useState(false);
-    const { isAuthenticated } = useAuth();
+  const { id } = useParams();
+  const [listing, setListing] = useState(null);
+  const [userBookings, setUserBookings] = useState([]);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [bookingModalOpen, setBookingModalOpen] = useState(false);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const { isAuthenticated } = useAuth();
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setLoading(true);
-                const data = await getListing(id);
-                setListing(data.listing);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const data = await getListing(id);
+        setListing(data.listing);
 
-                if (isAuthenticated()) {
-                    const bookingsData = await getAllBookings();
-                    const myBookingsForListing = bookingsData.bookings.filter(
-                        b => b.listingId === id
-                    );
-                    setUserBookings(myBookingsForListing);
-                }
-
-                setError('');
-            } catch (err) {
-                setError(err.message || 'Failed to load listing');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, [id, isAuthenticated]);
-
-    const handleMakeBooking = async (dateRange) => {
-        try {
-            setError('');
-            setSuccess('');
-            await makeBooking(id, dateRange);
-            setSuccess('Booking request submitted successfully!');
-
-            if (isAuthenticated()) {
-                const bookingsData = await getAllBookings();
-                const myBookingsForListing = bookingsData.bookings.filter(
-                    b => b.listingId === id
-                );
-                setUserBookings(myBookingsForListing);
-            }
-        } catch (err) {
-            setError(err.message || 'Failed to make booking');
+        if (isAuthenticated()) {
+          const bookingsData = await getAllBookings();
+          const myBookingsForListing = bookingsData.bookings.filter(
+            b => b.listingId === id
+          );
+          setUserBookings(myBookingsForListing);
         }
+
+        setError('');
+      } catch (err) {
+        setError(err.message || 'Failed to load listing');
+      } finally {
+        setLoading(false);
+      }
     };
 
-    const handleLeaveReview = async (review) => {
-        try {
-            setError('');
-            setSuccess('');
+    fetchData();
+  }, [id, isAuthenticated]);
 
-            const acceptedBooking = userBookings.find(b => b.status ===
-                'accepted');
-            if (!acceptedBooking) {
-                setError('You can only leave a review after your booking is accepted');
-          return;
-            }
+  const handleMakeBooking = async (dateRange) => {
+    try {
+      setError('');
+      setSuccess('');
+      await makeBooking(id, dateRange);
+      setSuccess('Booking request submitted successfully!');
 
-            await leaveReview(id, acceptedBooking.id, review);
-            setSuccess('Review submitted successfully!');
-
-            const data = await getListing(id);
-            setListing(data.listing);
-        } catch (err) {
-            setError(err.message || 'Failed to submit review');
-        }
-    };
-
-    const getTotalBeds = () => {
-        if (!listing?.metadata?.bedrooms) return 0;
-        return listing.metadata.bedrooms.reduce((sum, room) => sum + (room.beds
-            || 0), 0);
-    };
-
-    const hasAcceptedBooking = userBookings.some(b => b.status === 'accepted');
-
-    if (loading) {
-        return <Container sx={{
-            mt: 4
-        }}><Typography>Loading...</Typography></Container>;
+      if (isAuthenticated()) {
+        const bookingsData = await getAllBookings();
+        const myBookingsForListing = bookingsData.bookings.filter(
+          b => b.listingId === id
+        );
+        setUserBookings(myBookingsForListing);
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to make booking');
     }
+  };
 
-    if (error && !listing) {
-        return <Container sx={{ mt: 4 }}><Alert
-            severity="error">{error}</Alert></Container>;
+  const handleLeaveReview = async (review) => {
+    try {
+      setError('');
+      setSuccess('');
+
+      const acceptedBooking = userBookings.find(b => b.status ===
+  'accepted');
+      if (!acceptedBooking) {
+        setError('You can only leave a review after your booking is accepted');
+        return;
+      }
+
+      await leaveReview(id, acceptedBooking.id, review);
+      setSuccess('Review submitted successfully!');
+
+      const data = await getListing(id);
+      setListing(data.listing);
+    } catch (err) {
+      setError(err.message || 'Failed to submit review');
     }
+  };
 
-    if (!listing) {
-        return <Container sx={{ mt: 4 }}><Typography>Listing not
-            found</Typography></Container>;
-    }
+  const getTotalBeds = () => {
+    if (!listing?.metadata?.bedrooms) return 0;
+    return listing.metadata.bedrooms.reduce((sum, room) => sum + (room.beds
+  || 0), 0);
+  };
 
-    const totalBeds = getTotalBeds();
+  const hasAcceptedBooking = userBookings.some(b => b.status === 'accepted');
+
+  if (loading) {
+    return <Container sx={{ mt: 4 
+    }}><Typography>Loading...</Typography></Container>;
+  }
+
+  if (error && !listing) {
+    return <Container sx={{ mt: 4 }}><Alert 
+      severity="error">{error}</Alert></Container>;
+  }
+
+  if (!listing) {
+    return <Container sx={{ mt: 4 }}><Typography>Listing not
+  found</Typography></Container>;
+  }
+
+  const totalBeds = getTotalBeds();
   const allImages = [listing.thumbnail, ...(listing.metadata?.images ||
         [])].filter(Boolean);
   const isYouTube = listing.thumbnail?.includes('youtube.com');

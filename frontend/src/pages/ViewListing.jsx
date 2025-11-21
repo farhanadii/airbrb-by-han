@@ -2,22 +2,35 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import {
     Container, Typography, Box, Alert, Grid, Chip,
-    Paper, Divider, ImageList, ImageListItem
+    Paper, Divider, ImageList, ImageListItem, Button
 } from '@mui/material';
 import BedIcon from '@mui/icons-material/Bed';
 import BathtubIcon from '@mui/icons-material/Bathtub';
 import HomeIcon from '@mui/icons-material/Home';
-import { getListing, getAllBookings } from '../services/api';
+import { getListing, getAllBookings, makeBooking } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import StarRating from '../components/common/StarRating';
+import BookingModal from '../components/bookings/BookingModal';
 
 export default function ViewListing() {
     const { id } = useParams();
     const [listing, setListing] = useState(null);
     const [userBookings, setUserBookings] = useState([]);
     const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(true);
+    const [bookingModalOpen, setBookingModalOpen] = useState(false);
     const { isAuthenticated } = useAuth();
+
+    const fetchBookings = async () => {
+        if (isAuthenticated()) {
+            const bookingsData = await getAllBookings();
+            const myBookingsForListing = bookingsData.bookings.filter(
+                b => b.listingId === id
+            );
+            setUserBookings(myBookingsForListing);
+        }
+    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -25,15 +38,7 @@ export default function ViewListing() {
                 setLoading(true);
                 const data = await getListing(id);
                 setListing(data.listing);
-
-                if (isAuthenticated()) {
-                    const bookingsData = await getAllBookings();
-                    const myBookingsForListing = bookingsData.bookings.filter(
-                        b => b.listingId === id
-                    );
-                    setUserBookings(myBookingsForListing);
-                }
-
+                await fetchBookings();
                 setError('');
             } catch (err) {
                 setError(err.message || 'Failed to load listing');
@@ -44,6 +49,18 @@ export default function ViewListing() {
 
         fetchData();
     }, [id, isAuthenticated]);
+
+    const handleMakeBooking = async (dateRange) => {
+        try {
+            setError('');
+            setSuccess('');
+            await makeBooking(id, dateRange);
+            setSuccess('Booking request submitted successfully!');
+            await fetchBookings();
+        } catch (err) {
+            setError(err.message || 'Failed to make booking');
+        }
+    };
 
     const calculateAverageRating = () => {
         if (!listing?.reviews || listing.reviews.length === 0) return 0;
@@ -64,7 +81,7 @@ export default function ViewListing() {
         }}><Typography>Loading...</Typography></Container>;
     }
 
-    if (error) {
+    if (error && !listing) {
         return <Container sx={{ mt: 4 }}><Alert
             severity="error">{error}</Alert></Container>;
     }
@@ -93,6 +110,9 @@ export default function ViewListing() {
                     </Typography>
                 </Box>
             </Box>
+
+            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+            {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
 
             {allImages.length > 0 && (
                 <Box sx={{ mb: 3 }}>
@@ -187,6 +207,17 @@ export default function ViewListing() {
                             ${listing.price} / night
                         </Typography>
 
+                        {isAuthenticated() && (
+                            <Button
+                                variant="contained"
+                                fullWidth
+                                sx={{ mt: 2 }}
+                                onClick={() => setBookingModalOpen(true)}
+                            >
+                                Make a Booking
+                            </Button>
+                        )}
+
                         {userBookings.length > 0 && (
                             <Box sx={{ mt: 2 }}>
                                 <Typography variant="subtitle2" gutterBottom>Your
@@ -209,6 +240,14 @@ export default function ViewListing() {
                     </Paper>
                 </Grid>
             </Grid>
+
+            <BookingModal
+                open={bookingModalOpen}
+                onClose={() => setBookingModalOpen(false)}
+                onBook={handleMakeBooking}
+                listingTitle={listing.title}
+                pricePerNight={listing.price}
+            />
         </Container>
     );
 }

@@ -1,160 +1,160 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-    Container, TextField, Button, Typography, Box, Alert,
-    FormControl, InputLabel, Select, MenuItem, Chip, OutlinedInput, IconButton,
-    Grid, Tabs, Tab
+  Container, TextField, Button, Typography, Box, Alert,
+  FormControl, InputLabel, Select, MenuItem, Chip, OutlinedInput, IconButton,
+  Grid, Tabs, Tab
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { getListing, updateListing } from '../services/api';
 import BedroomInput from '../components/listings/BedroomInput';
 
 const AMENITIES_OPTIONS = [
-    'WiFi', 'Kitchen', 'Washer', 'Dryer', 'Air Conditioning',
-    'Heating', 'TV', 'Pool', 'Gym', 'Parking', 'Hot Tub'
+  'WiFi', 'Kitchen', 'Washer', 'Dryer', 'Air Conditioning',
+  'Heating', 'TV', 'Pool', 'Gym', 'Parking', 'Hot Tub'
 ];
 
 export default function EditListing() {
-    const { id } = useParams();
-    const navigate = useNavigate();
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(true);
-    const [thumbnailTab, setThumbnailTab] = useState(0);
-    const [formData, setFormData] = useState({
-        title: '',
-        address: '',
-        price: '',
-        thumbnail: '',
-        youtubeUrl: '',
-        propertyType: '',
-        bathrooms: '',
-        bedrooms: [{ beds: 1, type: 'Single' }],
-        amenities: [],
-        images: []
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [thumbnailTab, setThumbnailTab] = useState(0);
+  const [formData, setFormData] = useState({
+    title: '',
+    address: '',
+    price: '',
+    thumbnail: '',
+    youtubeUrl: '',
+    propertyType: '',
+    bathrooms: '',
+    bedrooms: [{ beds: 1, type: 'Single' }],
+    amenities: [],
+    images: []
+  });
+
+  useEffect(() => {
+    const fetchListing = async () => {
+      try {
+        const data = await getListing(id);
+        const listing = data.listing;
+
+        const isYouTube = listing.thumbnail?.includes('youtube.com');
+
+        setFormData({
+          title: listing.title || '',
+          address: listing.address || '',
+          price: listing.price || '',
+          thumbnail: isYouTube ? '' : listing.thumbnail || '',
+          youtubeUrl: isYouTube ? listing.thumbnail : '',
+          propertyType: listing.metadata?.propertyType || '',
+          bathrooms: listing.metadata?.bathrooms || '',
+          bedrooms: listing.metadata?.bedrooms || [{
+            beds: 1, type: 'Single'
+          }],
+          amenities: listing.metadata?.amenities || [],
+          images: listing.metadata?.images || []
+        });
+
+        if (isYouTube) {
+          setThumbnailTab(1);
+        }
+
+        setLoading(false);
+      } catch (err) {
+        setError(err.message || 'Failed to load listing');
+        setLoading(false);
+      }
+    };
+    fetchListing();
+  }, [id]);
+
+  const handleChange = (field, value) => {
+    setFormData({ ...formData, [field]: value });
+  };
+
+  const handleThumbnailUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        handleChange('thumbnail', reader.result);
+        handleChange('youtubeUrl', '');
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const extractYouTubeEmbedUrl = (url) => {
+    const videoIdMatch =
+            url.match(/(?:embed\/|v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    if (videoIdMatch) {
+      return `https://www.youtube.com/embed/${videoIdMatch[1]}`;
+    }
+    return url;
+  };
+
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.target.files);
+    const readers = files.map(file => {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(file);
+      });
     });
 
-    useEffect(() => {
-        const fetchListing = async () => {
-            try {
-                const data = await getListing(id);
-                const listing = data.listing;
+    Promise.all(readers).then(images => {
+      handleChange('images', [...formData.images, ...images]);
+    });
+  };
 
-                const isYouTube = listing.thumbnail?.includes('youtube.com');
+  const removeImage = (index) => {
+    handleChange('images', formData.images.filter((_, i) => i !== index));
+  };
 
-                setFormData({
-                    title: listing.title || '',
-                    address: listing.address || '',
-                    price: listing.price || '',
-                    thumbnail: isYouTube ? '' : listing.thumbnail || '',
-                    youtubeUrl: isYouTube ? listing.thumbnail : '',
-                    propertyType: listing.metadata?.propertyType || '',
-                    bathrooms: listing.metadata?.bathrooms || '',
-                    bedrooms: listing.metadata?.bedrooms || [{
-                        beds: 1, type: 'Single'
-                    }],
-                    amenities: listing.metadata?.amenities || [],
-                    images: listing.metadata?.images || []
-                });
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
 
-                if (isYouTube) {
-                    setThumbnailTab(1);
-                }
+    if (!formData.title || !formData.address || !formData.price) {
+      setError('Please fill in all required fields');
+      return;
+    }
 
-                setLoading(false);
-            } catch (err) {
-                setError(err.message || 'Failed to load listing');
-                setLoading(false);
-            }
-        };
-        fetchListing();
-    }, [id]);
+    if (formData.bedrooms.length === 0) {
+      setError('Please add at least one bedroom');
+      return;
+    }
 
-    const handleChange = (field, value) => {
-        setFormData({ ...formData, [field]: value });
-    };
-
-    const handleThumbnailUpload = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                handleChange('thumbnail', reader.result);
-                handleChange('youtubeUrl', '');
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-    const extractYouTubeEmbedUrl = (url) => {
-        const videoIdMatch =
-            url.match(/(?:embed\/|v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-        if (videoIdMatch) {
-            return `https://www.youtube.com/embed/${videoIdMatch[1]}`;
-        }
-        return url;
-    };
-
-    const handleImageUpload = (e) => {
-        const files = Array.from(e.target.files);
-        const readers = files.map(file => {
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result);
-                reader.readAsDataURL(file);
-            });
-        });
-
-        Promise.all(readers).then(images => {
-            handleChange('images', [...formData.images, ...images]);
-        });
-    };
-
-    const removeImage = (index) => {
-        handleChange('images', formData.images.filter((_, i) => i !== index));
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError('');
-
-        if (!formData.title || !formData.address || !formData.price) {
-            setError('Please fill in all required fields');
-            return;
-        }
-
-        if (formData.bedrooms.length === 0) {
-            setError('Please add at least one bedroom');
-            return;
-        }
-
-        try {
-            let thumbnailValue = formData.thumbnail ||
+    try {
+      let thumbnailValue = formData.thumbnail ||
                 'https://via.placeholder.com/300x200?text=No+Image';
 
-            if (thumbnailTab === 1 && formData.youtubeUrl) {
-                thumbnailValue = extractYouTubeEmbedUrl(formData.youtubeUrl);
-            }
+      if (thumbnailTab === 1 && formData.youtubeUrl) {
+        thumbnailValue = extractYouTubeEmbedUrl(formData.youtubeUrl);
+      }
 
-            const listingData = {
-                title: formData.title,
-                address: formData.address,
-                price: parseFloat(formData.price),
-                thumbnail: thumbnailValue,
-                metadata: {
-                    propertyType: formData.propertyType,
-                    bathrooms: parseInt(formData.bathrooms) || 0,
-                    bedrooms: formData.bedrooms,
-                    amenities: formData.amenities,
-                    images: formData.images
-                }
-            };
-
-            await updateListing(id, listingData);
-            navigate('/hosted');
-        } catch (err) {
-            setError(err.message || 'Failed to update listing');
+      const listingData = {
+        title: formData.title,
+        address: formData.address,
+        price: parseFloat(formData.price),
+        thumbnail: thumbnailValue,
+        metadata: {
+          propertyType: formData.propertyType,
+          bathrooms: parseInt(formData.bathrooms) || 0,
+          bedrooms: formData.bedrooms,
+          amenities: formData.amenities,
+          images: formData.images
         }
-    };
+      };
+
+      await updateListing(id, listingData);
+      navigate('/hosted');
+    } catch (err) {
+      setError(err.message || 'Failed to update listing');
+    }
+  };
 
   if (loading) {
     return <Container sx={{

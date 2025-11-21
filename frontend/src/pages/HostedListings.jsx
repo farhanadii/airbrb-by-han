@@ -120,16 +120,18 @@ export default function HostedListings() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">My Listings</Typography>
-        <Box sx={{ display: 'flex', gap: 2 }}>
+    <Container maxWidth="lg" sx={{ mt: { xs: 2, sm: 3, md: 4 }, mb: 4, px: { xs: 2, sm: 3 } }}>
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, gap: { xs: 2, sm: 0 }, mb: { xs: 2, sm: 3 } }}>
+        <Typography variant="h4" sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>My Listings</Typography>
+        <Box sx={{ display: 'flex', gap: { xs: 1, sm: 2 }, flexWrap: 'wrap', width: { xs: '100%', sm: 'auto' } }}>
           <Button
             variant="outlined"
             startIcon={<UploadFileIcon />}
             component="label"
+            size="small"
+            sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
           >
-                        Upload JSON
+            Upload JSON
             <input
               type="file"
               hidden
@@ -141,8 +143,10 @@ export default function HostedListings() {
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => navigate('/hosted/new')}
+            size="small"
+            sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' }, flex: { xs: 1, sm: 0 } }}
           >
-                        Create New Listing
+            Create New Listing
           </Button>
         </Box>
       </Box>
@@ -161,7 +165,7 @@ export default function HostedListings() {
       ) : listings.length === 0 ? (
         <Typography>You don&apos;t have any listings yet. Create one to get started!</Typography>
       ) : (
-        <Grid container spacing={3}>
+        <Grid container spacing={{ xs: 2, sm: 3 }}>
           {listings.map((listing) => (
             <Grid item xs={12} sm={6} md={4} key={listing.id}>
               <Box>

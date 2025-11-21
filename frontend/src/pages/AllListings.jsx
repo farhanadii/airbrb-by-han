@@ -157,13 +157,13 @@ export default function AllListings() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" gutterBottom>
-                    All Listings
+    <Container maxWidth="lg" sx={{ mt: { xs: 2, sm: 3, md: 4 }, mb: 4, px: { xs: 2, sm: 3 } }}>
+      <Box sx={{ mb: { xs: 2, sm: 3 } }}>
+        <Typography variant="h4" gutterBottom sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
+          All Listings
         </Typography>
-        <Typography variant="body1" color="text.secondary">
-                    Discover amazing places to stay
+        <Typography variant="body1" color="text.secondary" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
+          Discover amazing places to stay
         </Typography>
       </Box>
 
@@ -176,7 +176,7 @@ export default function AllListings() {
       ) : filteredListings.length === 0 ? (
         <Typography>No listings found matching your criteria.</Typography>
       ) : (
-        <Grid container spacing={3}>
+        <Grid container spacing={{ xs: 2, sm: 3 }}>
           {filteredListings.map((listing) => (
             <Grid item xs={12} sm={6} md={4} key={listing.id}>
               <ListingCard listing={listing} isHostView={false} />

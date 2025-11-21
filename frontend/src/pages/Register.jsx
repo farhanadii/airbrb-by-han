@@ -37,13 +37,15 @@ export default function Register() {
   };
 
   return (
-    <Container maxWidth="sm">
+    <Container maxWidth="sm" sx={{ px: { xs: 2, sm: 3 } }}>
       <Box sx={{
-        mt: 8, display: 'flex', flexDirection: 'column',
+        mt: { xs: 4, sm: 6, md: 8 },
+        display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center'
       }}>
-        <Typography component="h1" variant="h4">
-                    Register
+        <Typography component="h1" variant="h4" sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
+          Register
         </Typography>
 
         {error && <Alert severity="error" sx={{

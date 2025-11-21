@@ -1,6 +1,7 @@
 import { AppBar, Toolbar, Button, Box, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import NotificationsPanel from '../common/NotificationsPanel';
 
 export default function NavBar() {
     const navigate = useNavigate();
@@ -18,12 +19,11 @@ export default function NavBar() {
     return (
         <AppBar position="static">
             <Toolbar>
-                <Typography variant="h6" sx={{ flexGrow: 1, cursor: 'pointer' }}
-                    onClick={() => navigate('/')}>
+                <Typography variant="h6" sx={{ flexGrow: 1, cursor: 'pointer' }} onClick={() => navigate('/')}>
                     AirBrB
                 </Typography>
 
-                <Box sx={{ display: 'flex', gap: 2 }}>
+                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                     <Button color="inherit" onClick={() => navigate('/')}>
                         All Listings
                     </Button>
@@ -33,9 +33,8 @@ export default function NavBar() {
                             <Button color="inherit" onClick={() => navigate('/hosted')}>
                                 My Listings
                             </Button>
-                            <Typography sx={{
-                                display: 'flex', alignItems: 'center', mr: 2
-                            }}>
+                            <NotificationsPanel />
+                            <Typography sx={{ display: 'flex', alignItems: 'center', mr: 2 }}>
                                 {userEmail}
                             </Typography>
                             <Button color="inherit" onClick={handleLogout}>

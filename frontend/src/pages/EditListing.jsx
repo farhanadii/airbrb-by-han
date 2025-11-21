@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
     Container, TextField, Button, Typography, Box, Alert,
-    FormControl, InputLabel, Select, MenuItem, Chip, OutlinedInput,
-    IconButton, Grid
+    FormControl, InputLabel, Select, MenuItem, Chip, OutlinedInput, IconButton,
+    Grid, Tabs, Tab
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { getListing, updateListing } from '../services/api';
@@ -19,11 +19,13 @@ export default function EditListing() {
     const navigate = useNavigate();
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(true);
+    const [thumbnailTab, setThumbnailTab] = useState(0);
     const [formData, setFormData] = useState({
         title: '',
         address: '',
         price: '',
         thumbnail: '',
+        youtubeUrl: '',
         propertyType: '',
         bathrooms: '',
         bedrooms: [{ beds: 1, type: 'Single' }],
@@ -36,11 +38,15 @@ export default function EditListing() {
             try {
                 const data = await getListing(id);
                 const listing = data.listing;
+
+                const isYouTube = listing.thumbnail?.includes('youtube.com');
+
                 setFormData({
                     title: listing.title || '',
                     address: listing.address || '',
                     price: listing.price || '',
-                    thumbnail: listing.thumbnail || '',
+                    thumbnail: isYouTube ? '' : listing.thumbnail || '',
+                    youtubeUrl: isYouTube ? listing.thumbnail : '',
                     propertyType: listing.metadata?.propertyType || '',
                     bathrooms: listing.metadata?.bathrooms || '',
                     bedrooms: listing.metadata?.bedrooms || [{
@@ -49,6 +55,11 @@ export default function EditListing() {
                     amenities: listing.metadata?.amenities || [],
                     images: listing.metadata?.images || []
                 });
+
+                if (isYouTube) {
+                    setThumbnailTab(1);
+                }
+
                 setLoading(false);
             } catch (err) {
                 setError(err.message || 'Failed to load listing');
@@ -68,9 +79,19 @@ export default function EditListing() {
             const reader = new FileReader();
             reader.onloadend = () => {
                 handleChange('thumbnail', reader.result);
+                handleChange('youtubeUrl', '');
             };
             reader.readAsDataURL(file);
         }
+    };
+
+    const extractYouTubeEmbedUrl = (url) => {
+        const videoIdMatch =
+            url.match(/(?:embed\/|v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+        if (videoIdMatch) {
+            return `https://www.youtube.com/embed/${videoIdMatch[1]}`;
+        }
+        return url;
     };
 
     const handleImageUpload = (e) => {
@@ -107,12 +128,18 @@ export default function EditListing() {
         }
 
         try {
+            let thumbnailValue = formData.thumbnail ||
+                'https://via.placeholder.com/300x200?text=No+Image';
+
+            if (thumbnailTab === 1 && formData.youtubeUrl) {
+                thumbnailValue = extractYouTubeEmbedUrl(formData.youtubeUrl);
+            }
+
             const listingData = {
                 title: formData.title,
                 address: formData.address,
                 price: parseFloat(formData.price),
-                thumbnail: formData.thumbnail ||
-                    'https://via.placeholder.com/300x200?text=No+Image',
+                thumbnail: thumbnailValue,
                 metadata: {
                     propertyType: formData.propertyType,
                     bathrooms: parseInt(formData.bathrooms) || 0,
@@ -174,22 +201,60 @@ export default function EditListing() {
                     inputProps={{ min: 0, step: 0.01 }}
                 />
 
-                <Button variant="outlined" component="label" fullWidth sx={{
-                    mt: 2,
-                    mb: 2
-                }}>
-                    Update Thumbnail Image
-                    <input type="file" hidden accept="image/*"
-                        onChange={handleThumbnailUpload} />
-                </Button>
-                {formData.thumbnail && (
-                    <Box sx={{ mb: 2 }}>
-                        <img src={formData.thumbnail} alt="Thumbnail" style={{
-                            maxWidth:
-                                '200px', maxHeight: '150px'
-                        }} />
-                    </Box>
-                )}
+                <Box sx={{ mt: 3, mb: 2 }}>
+                    <Tabs value={thumbnailTab} onChange={(e, v) => setThumbnailTab(v)}>
+                        <Tab label="Image Upload" />
+                        <Tab label="YouTube Video" />
+                    </Tabs>
+
+                    {thumbnailTab === 0 ? (
+                        <>
+                            <Button variant="outlined" component="label" fullWidth sx={{
+                                mt: 2
+                            }}>
+                                Update Thumbnail Image
+                                <input type="file" hidden accept="image/*"
+                                    onChange={handleThumbnailUpload} />
+                            </Button>
+                            {formData.thumbnail && !formData.youtubeUrl && (
+                                <Box sx={{ mt: 2 }}>
+                                    <img src={formData.thumbnail} alt="Thumbnail" style={{
+                                        maxWidth: '200px', maxHeight: '150px'
+                                    }} />
+                                </Box>
+                            )}
+                        </>
+                    ) : (
+                        <>
+                            <TextField
+                                fullWidth
+                                label="YouTube Embed URL"
+                                value={formData.youtubeUrl}
+                                onChange={(e) => {
+                                    handleChange('youtubeUrl', e.target.value);
+                                    handleChange('thumbnail', '');
+                                }}
+                                placeholder="e.g. https://www.youtube.com/embed/VIDEO_ID"
+                                sx={{ mt: 2 }}
+                                helperText="Paste a YouTube embed URL"
+                            />
+                            {formData.youtubeUrl && (
+                                <Box sx={{ mt: 2 }}>
+                                    <iframe
+                                        width="300"
+                                        height="200"
+                                        src={extractYouTubeEmbedUrl(formData.youtubeUrl)}
+                                        title="YouTube preview"
+                                        frameBorder="0"
+                                        allow="accelerometer; autoplay; clipboard-write; 
+  encrypted-media; gyroscope; picture-in-picture"
+                                        allowFullScreen
+                                    />
+                                </Box>
+                            )}
+                        </>
+                    )}
+                </Box>
 
                 <TextField
                     fullWidth
@@ -211,10 +276,8 @@ export default function EditListing() {
                 />
 
                 <Box sx={{ mt: 3, mb: 3 }}>
-                    <BedroomInput
-                        bedrooms={formData.bedrooms}
-                        onChange={(bedrooms) => handleChange('bedrooms', bedrooms)}
-                    />
+                    <BedroomInput bedrooms={formData.bedrooms} onChange={(bedrooms) =>
+                        handleChange('bedrooms', bedrooms)} />
                 </Box>
 
                 <FormControl fullWidth margin="normal">

@@ -57,41 +57,43 @@ export default function SearchFilters({ onFilter }) {
   };
 
   return (
-    <Paper sx={{ p: 2, mb: 3 }}>
-      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+    <Paper sx={{ p: { xs: 1.5, sm: 2 }, mb: { xs: 2, sm: 3 } }}>
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: { xs: 1, sm: 2 }, alignItems: { xs: 'stretch', sm: 'center' } }}>
         <TextField
           fullWidth
           placeholder="Search by title or city..."
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+          size="small"
           InputProps={{
             startAdornment: <SearchIcon sx={{
               mr: 1, color: 'text.secondary'
             }} />
           }}
         />
-        <IconButton onClick={() => setShowFilters(!showFilters)}
-          color="primary">
-          <FilterListIcon />
-        </IconButton>
-        <Button variant="contained" onClick={handleSearch} sx={{
-          minWidth:
-                        100
-        }}>
-                    Search
-        </Button>
-        <IconButton onClick={handleClear} color="secondary">
-          <ClearIcon />
-        </IconButton>
+        <Box sx={{ display: 'flex', gap: 1, justifyContent: { xs: 'stretch', sm: 'flex-start' } }}>
+          <IconButton onClick={() => setShowFilters(!showFilters)}
+            color="primary" size="small">
+            <FilterListIcon />
+          </IconButton>
+          <Button variant="contained" onClick={handleSearch} sx={{
+            minWidth: { xs: 'auto', sm: 100 }, flex: { xs: 1, sm: 'initial' }
+          }} size="small">
+                      Search
+          </Button>
+          <IconButton onClick={handleClear} color="secondary" size="small">
+            <ClearIcon />
+          </IconButton>
+        </Box>
       </Box>
 
       <Collapse in={showFilters}>
-        <Box sx={{ mt: 3 }}>
-          <Typography variant="subtitle2" gutterBottom>Filters</Typography>
+        <Box sx={{ mt: { xs: 2, sm: 3 } }}>
+          <Typography variant="subtitle2" gutterBottom sx={{ fontSize: { xs: '0.875rem', sm: '0.875rem' } }}>Filters</Typography>
 
           {/* Bedrooms Filter */}
-          <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: { xs: 1, sm: 2 }, mt: 2 }}>
             <TextField
               label="Min Bedrooms"
               type="number"
@@ -113,7 +115,7 @@ export default function SearchFilters({ onFilter }) {
           </Box>
 
           {/* Date Range Filter */}
-          <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: { xs: 1, sm: 2 }, mt: 2 }}>
             <TextField
               label="Check-in"
               type="date"
@@ -135,7 +137,7 @@ export default function SearchFilters({ onFilter }) {
           </Box>
 
           {/* Price Range Filter */}
-          <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: { xs: 1, sm: 2 }, mt: 2 }}>
             <TextField
               label="Min Price"
               type="number"
@@ -157,7 +159,7 @@ export default function SearchFilters({ onFilter }) {
           </Box>
 
           {/* Sort Options */}
-          <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: { xs: 1, sm: 2 }, mt: 2 }}>
             <FormControl size="small" sx={{ flex: 1 }}>
               <InputLabel>Sort By</InputLabel>
               <Select value={sortBy} onChange={(e) =>

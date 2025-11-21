@@ -106,12 +106,12 @@ export default function BookingRequests() {
 
   if (loading) {
     return <Container sx={{
-      mt: 4
+      px: { xs: 2, sm: 3 }, mt: { xs: 2, sm: 3, md: 4 }
     }}><Typography>Loading...</Typography></Container>;
   }
 
   if (!listing) {
-    return <Container sx={{ mt: 4 }}><Typography>Listing not
+    return <Container sx={{ px: { xs: 2, sm: 3 }, mt: { xs: 2, sm: 3, md: 4 } }}><Typography>Listing not
             found</Typography></Container>;
   }
 
@@ -120,35 +120,35 @@ export default function BookingRequests() {
   const daysOnline = getDaysOnline();
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
-      <Button onClick={() => navigate('/hosted')} sx={{ mb: 2 }}>
+    <Container maxWidth="md" sx={{ px: { xs: 2, sm: 3 }, mt: { xs: 2, sm: 3, md: 4 }, mb: { xs: 3, sm: 4 } }}>
+      <Button onClick={() => navigate('/hosted')} sx={{ mb: 2 }} size="small">
                 ← Back to My Listings
       </Button>
 
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h4" gutterBottom sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
                 Booking Requests: {listing.title}
       </Typography>
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" gutterBottom>Listing Statistics</Typography>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-          <Typography variant="body2">Days online: {daysOnline}</Typography>
-          <Typography variant="body2">Days booked this year:
+      <Paper sx={{ p: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
+        <Typography variant="h6" gutterBottom sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>Listing Statistics</Typography>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 0.5, sm: 1 } }}>
+          <Typography variant="body2" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>Days online: {daysOnline}</Typography>
+          <Typography variant="body2" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>Days booked this year:
             {daysBooked}</Typography>
-          <Typography variant="body2">Profit this year:
+          <Typography variant="body2" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>Profit this year:
                         ${profit.toFixed(2)}</Typography>
         </Box>
       </Paper>
 
-      <Paper sx={{ p: 3 }}>
-        <Typography variant="h6" gutterBottom>
+      <Paper sx={{ p: { xs: 2, sm: 3 } }}>
+        <Typography variant="h6" gutterBottom sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                     Booking Requests ({bookings.length})
         </Typography>
 
         {bookings.length === 0 ? (
-          <Typography variant="body2" color="text.secondary">No booking
+          <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>No booking
                         requests yet</Typography>
         ) : (
           <List>
@@ -156,19 +156,19 @@ export default function BookingRequests() {
               <Box key={booking.id}>
                 <ListItem sx={{
                   flexDirection: 'column', alignItems:
-                                        'flex-start', py: 2
+                                        'flex-start', py: { xs: 1.5, sm: 2 }
                 }}>
                   <Box sx={{
-                    width: '100%', display: 'flex', justifyContent:
-                                            'space-between', mb: 1
+                    width: '100%', display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent:
+                                            'space-between', gap: { xs: 1, sm: 0 }, mb: 1
                   }}>
                     <Box>
-                      <Typography variant="body1">
+                      <Typography variant="body1" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                         {new
                         Date(booking.dateRange.start).toLocaleDateString()} - {new
                         Date(booking.dateRange.end).toLocaleDateString()}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                                                 Guest: {booking.owner}
                       </Typography>
                     </Box>
@@ -181,12 +181,13 @@ export default function BookingRequests() {
                   </Box>
 
                   {booking.status === 'pending' && (
-                    <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                    <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1, mt: 1, width: { xs: '100%', sm: 'auto' } }}>
                       <Button
                         size="small"
                         variant="contained"
                         color="success"
                         onClick={() => handleAccept(booking.id)}
+                        fullWidth={{ xs: true, sm: false }}
                       >
                                                 Accept
                       </Button>
@@ -195,6 +196,7 @@ export default function BookingRequests() {
                         variant="outlined"
                         color="error"
                         onClick={() => handleDecline(booking.id)}
+                        fullWidth={{ xs: true, sm: false }}
                       >
                                                 Decline
                       </Button>

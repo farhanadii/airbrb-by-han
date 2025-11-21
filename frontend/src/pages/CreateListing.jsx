@@ -188,65 +188,65 @@ export default function CreateListing() {
                     )}
                 </Box>
 
-                <TextField
-                    fullWidth
-                    label="Property Type"
-                    value={formData.propertyType}
-                    onChange={(e) => handleChange('propertyType', e.target.value)}
-                    margin="normal"
-                    placeholder="e.g. House, Apartment, Villa"
-                />
+        <TextField
+          fullWidth
+          label="Property Type"
+          value={formData.propertyType}
+          onChange={(e) => handleChange('propertyType', e.target.value)}
+          margin="normal"
+          placeholder="e.g. House, Apartment, Villa"
+        />
 
-                <TextField
-                    fullWidth
-                    label="Number of Bathrooms"
-                    type="number"
-                    value={formData.bathrooms}
-                    onChange={(e) => handleChange('bathrooms', e.target.value)}
-                    margin="normal"
-                    inputProps={{ min: 0 }}
-                />
+        <TextField
+          fullWidth
+          label="Number of Bathrooms"
+          type="number"
+          value={formData.bathrooms}
+          onChange={(e) => handleChange('bathrooms', e.target.value)}
+          margin="normal"
+          inputProps={{ min: 0 }}
+        />
 
-                <Box sx={{ mt: 3, mb: 3 }}>
-                    <BedroomInput
-                        bedrooms={formData.bedrooms}
-                        onChange={(bedrooms) => handleChange('bedrooms', bedrooms)}
-                    />
-                </Box>
+        <Box sx={{ mt: 3, mb: 3 }}>
+          <BedroomInput
+            bedrooms={formData.bedrooms}
+            onChange={(bedrooms) => handleChange('bedrooms', bedrooms)}
+          />
+        </Box>
 
-                <FormControl fullWidth margin="normal">
-                    <InputLabel>Amenities</InputLabel>
-                    <Select
-                        multiple
-                        value={formData.amenities}
-                        onChange={(e) => handleChange('amenities', e.target.value)}
-                        input={<OutlinedInput label="Amenities" />}
-                        renderValue={(selected) => (
-                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                {selected.map((value) => (
-                                    <Chip key={value} label={value} size="small" />
-                                ))}
-                            </Box>
-                        )}
-                    >
-                        {AMENITIES_OPTIONS.map((amenity) => (
-                            <MenuItem key={amenity} value={amenity}>
-                                {amenity}
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
+        <FormControl fullWidth margin="normal">
+          <InputLabel>Amenities</InputLabel>
+          <Select
+            multiple
+            value={formData.amenities}
+            onChange={(e) => handleChange('amenities', e.target.value)}
+            input={<OutlinedInput label="Amenities" />}
+            renderValue={(selected) => (
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                {selected.map((value) => (
+                  <Chip key={value} label={value} size="small" />
+                ))}
+              </Box>
+            )}
+          >
+            {AMENITIES_OPTIONS.map((amenity) => (
+              <MenuItem key={amenity} value={amenity}>
+                {amenity}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
 
-                <Box sx={{ mt: 4, display: 'flex', gap: 2 }}>
-                    <Button type="submit" variant="contained" size="large" fullWidth>
+        <Box sx={{ mt: 4, display: 'flex', gap: 2 }}>
+          <Button type="submit" variant="contained" size="large" fullWidth>
                         Create Listing
-                    </Button>
-                    <Button variant="outlined" size="large" onClick={() =>
-                        navigate('/hosted')} fullWidth>
+          </Button>
+          <Button variant="outlined" size="large" onClick={() =>
+            navigate('/hosted')} fullWidth>
                         Cancel
-                    </Button>
-                </Box>
-            </Box>
-        </Container>
-    );
+          </Button>
+        </Box>
+      </Box>
+    </Container>
+  );
 }

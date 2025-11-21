@@ -4,14 +4,18 @@ import { Container, Grid, Typography, Button, Box, Alert, Chip } from
 import AddIcon from '@mui/icons-material/Add';
 import ManageSearchIcon from '@mui/icons-material/ManageSearch';
 import { useNavigate } from 'react-router-dom';
-import { getAllListings, deleteListing, publishListing, unpublishListing }
-    from '../services/api';
+import {
+    getAllListings, deleteListing, publishListing, unpublishListing,
+    getAllBookings
+} from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import ListingCard from '../components/listings/ListingCard';
 import PublishModal from '../components/listings/PublishModal';
+import ProfitsGraph from '../components/listings/ProfitsGraph';
 
 export default function HostedListings() {
     const [listings, setListings] = useState([]);
+    const [bookings, setBookings] = useState([]);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(true);
     const [publishModalOpen, setPublishModalOpen] = useState(false);
@@ -26,6 +30,10 @@ export default function HostedListings() {
             const myListings = data.listings.filter(listing => listing.owner ===
                 userEmail);
             setListings(myListings);
+
+            const bookingsData = await getAllBookings();
+            setBookings(bookingsData.bookings);
+
             setError('');
         } catch (err) {
             setError(err.message || 'Failed to load listings');
@@ -93,6 +101,12 @@ export default function HostedListings() {
             </Box>
 
             {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+
+            {!loading && listings.length > 0 && (
+                <Box sx={{ mb: 4 }}>
+                    <ProfitsGraph bookings={bookings} listings={listings} />
+                </Box>
+            )}
 
             {loading ? (
                 <Typography>Loading...</Typography>

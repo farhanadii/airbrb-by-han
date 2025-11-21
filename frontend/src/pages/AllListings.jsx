@@ -85,6 +85,8 @@ export default function AllListings() {
     const handleFilter = (filters) => {
         let results = [...allListings];
 
+        let filtersApplied = 0;
+
         // Text search (title or address)
         if (filters.searchText) {
             const searchLower = filters.searchText.toLowerCase();
@@ -94,6 +96,7 @@ export default function AllListings() {
                     listing.address?.toLowerCase().includes(searchLower);
                 return titleMatch || addressMatch;
             });
+            filtersApplied++;
         }
 
         // Bedrooms filter
@@ -105,6 +108,7 @@ export default function AllListings() {
                     Infinity;
                 return totalBedrooms >= min && totalBedrooms <= max;
             });
+            filtersApplied++;
         }
 
         // Date range filter
@@ -112,6 +116,7 @@ export default function AllListings() {
             results = results.filter(listing =>
                 checkDateAvailability(listing, filters.dateStart, filters.dateEnd)
             );
+            filtersApplied++;
         }
 
         // Price filter
@@ -122,10 +127,13 @@ export default function AllListings() {
                 const max = filters.priceMax !== null ? filters.priceMax : Infinity;
                 return price >= min && price <= max;
             });
+            filtersApplied++;
         }
 
-        // Sorting
-        if (filters.sortBy) {
+        // Sorting - if multiple filters applied, only alphabetical sorting
+        if (filtersApplied > 1) {
+            results.sort((a, b) => a.title.localeCompare(b.title));
+        } else if (filters.sortBy) {
             results.sort((a, b) => {
                 let aValue, bValue;
 

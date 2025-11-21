@@ -8,9 +8,7 @@ import CreateListing from './pages/CreateListing';
 import EditListing from './pages/EditListing';
 import AllListings from './pages/AllListings';
 import ViewListing from './pages/ViewListing';
-
-// Temporary placeholder components - we'll create these in future commits
-const BookingRequests = () => <div>Booking Requests - Coming Soon</div>;
+import BookingRequests from './pages/BookingRequests';
 
 function App() {
   return (

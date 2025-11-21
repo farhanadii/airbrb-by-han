@@ -10,7 +10,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import { getListing, getAllBookings, makeBooking, leaveReview } from
     '../services/api';
 import { useAuth } from '../contexts/AuthContext';
-import StarRating from '../components/common/StarRating';
+import RatingBreakdown from '../components/common/RatingBreakdown';
 import BookingModal from '../components/bookings/BookingModal';
 import ReviewModal from '../components/bookings/ReviewModal';
 
@@ -92,13 +92,6 @@ export default function ViewListing() {
         }
     };
 
-    const calculateAverageRating = () => {
-        if (!listing?.reviews || listing.reviews.length === 0) return 0;
-        const sum = listing.reviews.reduce((acc, review) => acc + review.rating,
-            0);
-        return sum / listing.reviews.length;
-    };
-
     const getTotalBeds = () => {
         if (!listing?.metadata?.bedrooms) return 0;
         return listing.metadata.bedrooms.reduce((sum, room) => sum + (room.beds
@@ -123,10 +116,10 @@ export default function ViewListing() {
             found</Typography></Container>;
     }
 
-    const avgRating = calculateAverageRating();
     const totalBeds = getTotalBeds();
     const allImages = [listing.thumbnail, ...(listing.metadata?.images ||
         [])].filter(Boolean);
+    const isYouTube = listing.thumbnail?.includes('youtube.com');
 
     return (
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
@@ -135,8 +128,7 @@ export default function ViewListing() {
                     {listing.title}
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <StarRating rating={avgRating} reviewCount={listing.reviews?.length
-                        || 0} />
+                    <RatingBreakdown reviews={listing.reviews || []} />
                     <Typography variant="body2" color="text.secondary">
                         {listing.address}
                     </Typography>
@@ -148,17 +140,32 @@ export default function ViewListing() {
 
             {allImages.length > 0 && (
                 <Box sx={{ mb: 3 }}>
-                    <ImageList cols={3} gap={8} sx={{ maxHeight: 400 }}>
-                        {allImages.map((image, index) => (
-                            <ImageListItem key={index}>
-                                <img
-                                    src={image}
-                                    alt={`${listing.title} ${index + 1}`}
-                                    style={{ height: '100%', objectFit: 'cover' }}
-                                />
-                            </ImageListItem>
-                        ))}
-                    </ImageList>
+                    {isYouTube && allImages.length === 1 ? (
+                        <Box sx={{ width: '100%', height: 400 }}>
+                            <iframe
+                                width="100%"
+                                height="100%"
+                                src={listing.thumbnail}
+                                title={listing.title}
+                                frameBorder="0"
+                                allow="accelerometer; autoplay; clipboard-write; 
+  encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                            />
+                        </Box>
+                    ) : (
+                        <ImageList cols={3} gap={8} sx={{ maxHeight: 400 }}>
+                            {allImages.map((image, index) => (
+                                <ImageListItem key={index}>
+                                    <img
+                                        src={image}
+                                        alt={`${listing.title} ${index + 1}`}
+                                        style={{ height: '100%', objectFit: 'cover' }}
+                                    />
+                                </ImageListItem>
+                            ))}
+                        </ImageList>
+                    )}
                 </Box>
             )}
 
@@ -234,7 +241,7 @@ export default function ViewListing() {
                                     mb: 2, pb: 2, borderBottom: index <
                                         listing.reviews.length - 1 ? '1px solid #e0e0e0' : 'none'
                                 }}>
-                                    <StarRating rating={review.rating} />
+                                    <RatingBreakdown reviews={[review]} />
                                     <Typography variant="body2" sx={{
                                         mt: 1
                                     }}>{review.comment}</Typography>

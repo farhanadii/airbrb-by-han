@@ -151,7 +151,60 @@ export default function BookingRequests() {
                     <Typography variant="body2" color="text.secondary">No booking
                         requests yet</Typography>
                 ) : (
-                    <Typography>Bookings list will be added next</Typography>
+                    <List>
+                        {bookings.map((booking, index) => (
+                            <Box key={booking.id}>
+                                <ListItem sx={{
+                                    flexDirection: 'column', alignItems:
+                                        'flex-start', py: 2
+                                }}>
+                                    <Box sx={{
+                                        width: '100%', display: 'flex', justifyContent:
+                                            'space-between', mb: 1
+                                    }}>
+                                        <Box>
+                                            <Typography variant="body1">
+                                                {new
+                                                    Date(booking.dateRange.start).toLocaleDateString()} - {new
+                                                        Date(booking.dateRange.end).toLocaleDateString()}
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary">
+                                                Guest: {booking.owner}
+                                            </Typography>
+                                        </Box>
+                                        <Chip
+                                            label={booking.status.toUpperCase()}
+                                            color={booking.status === 'accepted' ? 'success' :
+                                                booking.status === 'pending' ? 'warning' : 'default'}
+                                            size="small"
+                                        />
+                                    </Box>
+
+                                    {booking.status === 'pending' && (
+                                        <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                                            <Button
+                                                size="small"
+                                                variant="contained"
+                                                color="success"
+                                                onClick={() => handleAccept(booking.id)}
+                                            >
+                                                Accept
+                                            </Button>
+                                            <Button
+                                                size="small"
+                                                variant="outlined"
+                                                color="error"
+                                                onClick={() => handleDecline(booking.id)}
+                                            >
+                                                Decline
+                                            </Button>
+                                        </Box>
+                                    )}
+                                </ListItem>
+                                {index < bookings.length - 1 && <Divider />}
+                            </Box>
+                        ))}
+                    </List>
                 )}
             </Paper>
         </Container>

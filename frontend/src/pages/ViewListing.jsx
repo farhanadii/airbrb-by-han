@@ -157,6 +157,28 @@ export default function ViewListing() {
                                 </>
                             )}
                     </Paper>
+
+                    <Paper sx={{ p: 3 }}>
+                        <Typography variant="h6" gutterBottom>
+                            Reviews ({listing.reviews?.length || 0})
+                        </Typography>
+                        {listing.reviews && listing.reviews.length > 0 ? (
+                            listing.reviews.map((review, index) => (
+                                <Box key={index} sx={{
+                                    mb: 2, pb: 2, borderBottom: index <
+                                        listing.reviews.length - 1 ? '1px solid #e0e0e0' : 'none'
+                                }}>
+                                    <StarRating rating={review.rating} />
+                                    <Typography variant="body2" sx={{
+                                        mt: 1
+                                    }}>{review.comment}</Typography>
+                                </Box>
+                            ))
+                        ) : (
+                            <Typography variant="body2" color="text.secondary">No reviews
+                                yet</Typography>
+                        )}
+                    </Paper>
                 </Grid>
 
                 <Grid item xs={12} md={4}>

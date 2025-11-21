@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Container, Grid, Typography, Button, Box, Alert, Chip } from
     '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import ManageSearchIcon from '@mui/icons-material/ManageSearch';
 import { useNavigate } from 'react-router-dom';
 import { getAllListings, deleteListing, publishListing, unpublishListing }
     from '../services/api';
@@ -114,8 +115,7 @@ export default function HostedListings() {
                                 }}>
                                     {listing.published ? (
                                         <>
-                                            <Chip label="Published" color="success" size="small"
-                                            />
+                                            <Chip label="Published" color="success" size="small" />
                                             <Button
                                                 size="small"
                                                 variant="outlined"
@@ -136,6 +136,19 @@ export default function HostedListings() {
                                         </Button>
                                     )}
                                 </Box>
+                                {listing.published && (
+                                    <Button
+                                        fullWidth
+                                        size="small"
+                                        variant="text"
+                                        startIcon={<ManageSearchIcon />}
+                                        onClick={() =>
+                                            navigate(`/listings/${listing.id}/bookings`)}
+                                        sx={{ mt: 1 }}
+                                    >
+                                        Manage Bookings
+                                    </Button>
+                                )}
                             </Box>
                         </Grid>
                     ))}

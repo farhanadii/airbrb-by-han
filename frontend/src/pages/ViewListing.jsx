@@ -7,10 +7,12 @@ import {
 import BedIcon from '@mui/icons-material/Bed';
 import BathtubIcon from '@mui/icons-material/Bathtub';
 import HomeIcon from '@mui/icons-material/Home';
-import { getListing, getAllBookings, makeBooking } from '../services/api';
+import { getListing, getAllBookings, makeBooking, leaveReview } from
+    '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import StarRating from '../components/common/StarRating';
 import BookingModal from '../components/bookings/BookingModal';
+import ReviewModal from '../components/bookings/ReviewModal';
 
 export default function ViewListing() {
     const { id } = useParams();
@@ -20,17 +22,8 @@ export default function ViewListing() {
     const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(true);
     const [bookingModalOpen, setBookingModalOpen] = useState(false);
+    const [reviewModalOpen, setReviewModalOpen] = useState(false);
     const { isAuthenticated } = useAuth();
-
-    const fetchBookings = async () => {
-        if (isAuthenticated()) {
-            const bookingsData = await getAllBookings();
-            const myBookingsForListing = bookingsData.bookings.filter(
-                b => b.listingId === id
-            );
-            setUserBookings(myBookingsForListing);
-        }
-    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -38,7 +31,15 @@ export default function ViewListing() {
                 setLoading(true);
                 const data = await getListing(id);
                 setListing(data.listing);
-                await fetchBookings();
+
+                if (isAuthenticated()) {
+                    const bookingsData = await getAllBookings();
+                    const myBookingsForListing = bookingsData.bookings.filter(
+                        b => b.listingId === id
+                    );
+                    setUserBookings(myBookingsForListing);
+                }
+
                 setError('');
             } catch (err) {
                 setError(err.message || 'Failed to load listing');
@@ -56,9 +57,38 @@ export default function ViewListing() {
             setSuccess('');
             await makeBooking(id, dateRange);
             setSuccess('Booking request submitted successfully!');
-            await fetchBookings();
+
+            if (isAuthenticated()) {
+                const bookingsData = await getAllBookings();
+                const myBookingsForListing = bookingsData.bookings.filter(
+                    b => b.listingId === id
+                );
+                setUserBookings(myBookingsForListing);
+            }
         } catch (err) {
             setError(err.message || 'Failed to make booking');
+        }
+    };
+
+    const handleLeaveReview = async (review) => {
+        try {
+            setError('');
+            setSuccess('');
+
+            const acceptedBooking = userBookings.find(b => b.status ===
+                'accepted');
+            if (!acceptedBooking) {
+                setError('You can only leave a review after your booking is accepted');
+          return;
+            }
+
+            await leaveReview(id, acceptedBooking.id, review);
+            setSuccess('Review submitted successfully!');
+
+            const data = await getListing(id);
+            setListing(data.listing);
+        } catch (err) {
+            setError(err.message || 'Failed to submit review');
         }
     };
 
@@ -74,6 +104,8 @@ export default function ViewListing() {
         return listing.metadata.bedrooms.reduce((sum, room) => sum + (room.beds
             || 0), 0);
     };
+
+    const hasAcceptedBooking = userBookings.some(b => b.status === 'accepted');
 
     if (loading) {
         return <Container sx={{
@@ -179,9 +211,23 @@ export default function ViewListing() {
                     </Paper>
 
                     <Paper sx={{ p: 3 }}>
-                        <Typography variant="h6" gutterBottom>
-                            Reviews ({listing.reviews?.length || 0})
-                        </Typography>
+                        <Box sx={{
+                            display: 'flex', justifyContent: 'space-between',
+                            alignItems: 'center', mb: 2
+                        }}>
+                            <Typography variant="h6">
+                                Reviews ({listing.reviews?.length || 0})
+                            </Typography>
+                            {isAuthenticated() && hasAcceptedBooking && (
+                                <Button
+                                    variant="outlined"
+                                    size="small"
+                                    onClick={() => setReviewModalOpen(true)}
+                                >
+                                    Leave Review
+                                </Button>
+                            )}
+                        </Box>
                         {listing.reviews && listing.reviews.length > 0 ? (
                             listing.reviews.map((review, index) => (
                                 <Box key={index} sx={{
@@ -247,6 +293,13 @@ export default function ViewListing() {
                 onBook={handleMakeBooking}
                 listingTitle={listing.title}
                 pricePerNight={listing.price}
+            />
+
+            <ReviewModal
+                open={reviewModalOpen}
+                onClose={() => setReviewModalOpen(false)}
+                onSubmit={handleLeaveReview}
+                listingTitle={listing.title}
             />
         </Container>
     );

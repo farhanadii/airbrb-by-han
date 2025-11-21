@@ -156,194 +156,194 @@ export default function EditListing() {
         }
     };
 
-    if (loading) {
-        return <Container sx={{
-            mt: 4
-        }}><Typography>Loading...</Typography></Container>;
-    }
+  if (loading) {
+    return <Container sx={{
+      mt: 4
+    }}><Typography>Loading...</Typography></Container>;
+  }
 
-    return (
-        <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
-            <Typography variant="h4" gutterBottom>
+  return (
+    <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
+      <Typography variant="h4" gutterBottom>
                 Edit Listing
-            </Typography>
+      </Typography>
 
-            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-            <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
-                <TextField
-                    fullWidth
-                    required
-                    label="Listing Title"
-                    value={formData.title}
-                    onChange={(e) => handleChange('title', e.target.value)}
-                    margin="normal"
-                />
+      <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
+        <TextField
+          fullWidth
+          required
+          label="Listing Title"
+          value={formData.title}
+          onChange={(e) => handleChange('title', e.target.value)}
+          margin="normal"
+        />
 
-                <TextField
-                    fullWidth
-                    required
-                    label="Address"
-                    value={formData.address}
-                    onChange={(e) => handleChange('address', e.target.value)}
-                    margin="normal"
-                    placeholder="e.g. 123 Main St, Sydney, NSW 2000"
-                />
+        <TextField
+          fullWidth
+          required
+          label="Address"
+          value={formData.address}
+          onChange={(e) => handleChange('address', e.target.value)}
+          margin="normal"
+          placeholder="e.g. 123 Main St, Sydney, NSW 2000"
+        />
 
-                <TextField
-                    fullWidth
-                    required
-                    label="Price per Night"
-                    type="number"
-                    value={formData.price}
-                    onChange={(e) => handleChange('price', e.target.value)}
-                    margin="normal"
-                    inputProps={{ min: 0, step: 0.01 }}
-                />
+        <TextField
+          fullWidth
+          required
+          label="Price per Night"
+          type="number"
+          value={formData.price}
+          onChange={(e) => handleChange('price', e.target.value)}
+          margin="normal"
+          inputProps={{ min: 0, step: 0.01 }}
+        />
 
-                <Box sx={{ mt: 3, mb: 2 }}>
-                    <Tabs value={thumbnailTab} onChange={(e, v) => setThumbnailTab(v)}>
-                        <Tab label="Image Upload" />
-                        <Tab label="YouTube Video" />
-                    </Tabs>
+        <Box sx={{ mt: 3, mb: 2 }}>
+          <Tabs value={thumbnailTab} onChange={(e, v) => setThumbnailTab(v)}>
+            <Tab label="Image Upload" />
+            <Tab label="YouTube Video" />
+          </Tabs>
 
-                    {thumbnailTab === 0 ? (
-                        <>
-                            <Button variant="outlined" component="label" fullWidth sx={{
-                                mt: 2
-                            }}>
+          {thumbnailTab === 0 ? (
+            <>
+              <Button variant="outlined" component="label" fullWidth sx={{
+                mt: 2
+              }}>
                                 Update Thumbnail Image
-                                <input type="file" hidden accept="image/*"
-                                    onChange={handleThumbnailUpload} />
-                            </Button>
-                            {formData.thumbnail && !formData.youtubeUrl && (
-                                <Box sx={{ mt: 2 }}>
-                                    <img src={formData.thumbnail} alt="Thumbnail" style={{
-                                        maxWidth: '200px', maxHeight: '150px'
-                                    }} />
-                                </Box>
-                            )}
-                        </>
-                    ) : (
-                        <>
-                            <TextField
-                                fullWidth
-                                label="YouTube Embed URL"
-                                value={formData.youtubeUrl}
-                                onChange={(e) => {
-                                    handleChange('youtubeUrl', e.target.value);
-                                    handleChange('thumbnail', '');
-                                }}
-                                placeholder="e.g. https://www.youtube.com/embed/VIDEO_ID"
-                                sx={{ mt: 2 }}
-                                helperText="Paste a YouTube embed URL"
-                            />
-                            {formData.youtubeUrl && (
-                                <Box sx={{ mt: 2 }}>
-                                    <iframe
-                                        width="300"
-                                        height="200"
-                                        src={extractYouTubeEmbedUrl(formData.youtubeUrl)}
-                                        title="YouTube preview"
-                                        frameBorder="0"
-                                        allow="accelerometer; autoplay; clipboard-write; 
+                <input type="file" hidden accept="image/*"
+                  onChange={handleThumbnailUpload} />
+              </Button>
+              {formData.thumbnail && !formData.youtubeUrl && (
+                <Box sx={{ mt: 2 }}>
+                  <img src={formData.thumbnail} alt="Thumbnail" style={{
+                    maxWidth: '200px', maxHeight: '150px'
+                  }} />
+                </Box>
+              )}
+            </>
+          ) : (
+            <>
+              <TextField
+                fullWidth
+                label="YouTube Embed URL"
+                value={formData.youtubeUrl}
+                onChange={(e) => {
+                  handleChange('youtubeUrl', e.target.value);
+                  handleChange('thumbnail', '');
+                }}
+                placeholder="e.g. https://www.youtube.com/embed/VIDEO_ID"
+                sx={{ mt: 2 }}
+                helperText="Paste a YouTube embed URL"
+              />
+              {formData.youtubeUrl && (
+                <Box sx={{ mt: 2 }}>
+                  <iframe
+                    width="300"
+                    height="200"
+                    src={extractYouTubeEmbedUrl(formData.youtubeUrl)}
+                    title="YouTube preview"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; 
   encrypted-media; gyroscope; picture-in-picture"
-                                        allowFullScreen
-                                    />
-                                </Box>
-                            )}
-                        </>
-                    )}
+                    allowFullScreen
+                  />
                 </Box>
+              )}
+            </>
+          )}
+        </Box>
 
-                <TextField
-                    fullWidth
-                    label="Property Type"
-                    value={formData.propertyType}
-                    onChange={(e) => handleChange('propertyType', e.target.value)}
-                    margin="normal"
-                    placeholder="e.g. House, Apartment, Villa"
-                />
+        <TextField
+          fullWidth
+          label="Property Type"
+          value={formData.propertyType}
+          onChange={(e) => handleChange('propertyType', e.target.value)}
+          margin="normal"
+          placeholder="e.g. House, Apartment, Villa"
+        />
 
-                <TextField
-                    fullWidth
-                    label="Number of Bathrooms"
-                    type="number"
-                    value={formData.bathrooms}
-                    onChange={(e) => handleChange('bathrooms', e.target.value)}
-                    margin="normal"
-                    inputProps={{ min: 0 }}
-                />
+        <TextField
+          fullWidth
+          label="Number of Bathrooms"
+          type="number"
+          value={formData.bathrooms}
+          onChange={(e) => handleChange('bathrooms', e.target.value)}
+          margin="normal"
+          inputProps={{ min: 0 }}
+        />
 
-                <Box sx={{ mt: 3, mb: 3 }}>
-                    <BedroomInput bedrooms={formData.bedrooms} onChange={(bedrooms) =>
-                        handleChange('bedrooms', bedrooms)} />
-                </Box>
+        <Box sx={{ mt: 3, mb: 3 }}>
+          <BedroomInput bedrooms={formData.bedrooms} onChange={(bedrooms) =>
+            handleChange('bedrooms', bedrooms)} />
+        </Box>
 
-                <FormControl fullWidth margin="normal">
-                    <InputLabel>Amenities</InputLabel>
-                    <Select
-                        multiple
-                        value={formData.amenities}
-                        onChange={(e) => handleChange('amenities', e.target.value)}
-                        input={<OutlinedInput label="Amenities" />}
-                        renderValue={(selected) => (
-                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                {selected.map((value) => (
-                                    <Chip key={value} label={value} size="small" />
-                                ))}
-                            </Box>
-                        )}
-                    >
-                        {AMENITIES_OPTIONS.map((amenity) => (
-                            <MenuItem key={amenity} value={amenity}>{amenity}</MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
+        <FormControl fullWidth margin="normal">
+          <InputLabel>Amenities</InputLabel>
+          <Select
+            multiple
+            value={formData.amenities}
+            onChange={(e) => handleChange('amenities', e.target.value)}
+            input={<OutlinedInput label="Amenities" />}
+            renderValue={(selected) => (
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                {selected.map((value) => (
+                  <Chip key={value} label={value} size="small" />
+                ))}
+              </Box>
+            )}
+          >
+            {AMENITIES_OPTIONS.map((amenity) => (
+              <MenuItem key={amenity} value={amenity}>{amenity}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
 
-                <Box sx={{ mt: 3 }}>
-                    <Typography variant="subtitle1" gutterBottom>Property
+        <Box sx={{ mt: 3 }}>
+          <Typography variant="subtitle1" gutterBottom>Property
                         Images</Typography>
-                    <Button variant="outlined" component="label" fullWidth>
+          <Button variant="outlined" component="label" fullWidth>
                         Add More Images
-                        <input type="file" hidden multiple accept="image/*"
-                            onChange={handleImageUpload} />
-                    </Button>
+            <input type="file" hidden multiple accept="image/*"
+              onChange={handleImageUpload} />
+          </Button>
 
-                    <Grid container spacing={2} sx={{ mt: 1 }}>
-                        {formData.images.map((image, index) => (
-                            <Grid item xs={6} sm={4} key={index}>
-                                <Box sx={{ position: 'relative' }}>
-                                    <img src={image} alt={`Property ${index + 1}`} style={{
-                                        width: '100%', height: '150px', objectFit: 'cover'
-                                    }} />
-                                    <IconButton
-                                        size="small"
-                                        color="error"
-                                        onClick={() => removeImage(index)}
-                                        sx={{
-                                            position: 'absolute', top: 5, right: 5, bgcolor:
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            {formData.images.map((image, index) => (
+              <Grid item xs={6} sm={4} key={index}>
+                <Box sx={{ position: 'relative' }}>
+                  <img src={image} alt={`Property ${index + 1}`} style={{
+                    width: '100%', height: '150px', objectFit: 'cover'
+                  }} />
+                  <IconButton
+                    size="small"
+                    color="error"
+                    onClick={() => removeImage(index)}
+                    sx={{
+                      position: 'absolute', top: 5, right: 5, bgcolor:
                                                 'white'
-                                        }}
-                                    >
-                                        <DeleteIcon fontSize="small" />
-                                    </IconButton>
-                                </Box>
-                            </Grid>
-                        ))}
-                    </Grid>
+                    }}
+                  >
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
                 </Box>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
 
-                <Box sx={{ mt: 4, display: 'flex', gap: 2 }}>
-                    <Button type="submit" variant="contained" size="large" fullWidth>
+        <Box sx={{ mt: 4, display: 'flex', gap: 2 }}>
+          <Button type="submit" variant="contained" size="large" fullWidth>
                         Save Changes
-                    </Button>
-                    <Button variant="outlined" size="large" onClick={() =>
-                        navigate('/hosted')} fullWidth>
+          </Button>
+          <Button variant="outlined" size="large" onClick={() =>
+            navigate('/hosted')} fullWidth>
                         Cancel
-                    </Button>
-                </Box>
-            </Box>
-        </Container>
-    );
+          </Button>
+        </Box>
+      </Box>
+    </Container>
+  );
 }

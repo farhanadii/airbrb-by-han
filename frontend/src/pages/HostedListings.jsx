@@ -3,11 +3,10 @@ import { Container, Grid, Typography, Button, Box, Alert, Chip } from '@mui/mate
 import AddIcon from '@mui/icons-material/Add';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import ManageSearchIcon from '@mui/icons-material/ManageSearch';
-import { useNavigate } from 'react-router-dom';
-import { getAllListings, deleteListing, publishListing, unpublishListing, getAllBookings, createListing } from '../services/api';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { getAllListings, getListing, deleteListing, publishListing, unpublishListing, getAllBookings, createListing } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import ListingCard from '../components/listings/ListingCard';
-import PublishModal from '../components/listings/PublishModal';
 import ProfitsGraph from '../components/listings/ProfitsGraph';
 
 export default function HostedListings() {
@@ -16,17 +15,29 @@ export default function HostedListings() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(true);
-  const [publishModalOpen, setPublishModalOpen] = useState(false);
-  const [selectedListing, setSelectedListing] = useState(null);
   const { userEmail } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const fetchMyListings = async () => {
     try {
       setLoading(true);
       const data = await getAllListings();
       const myListings = data.listings.filter(listing => listing.owner === userEmail);
-      setListings(myListings);
+
+      // Fetch full details to get published status and availability
+      const listingsWithDetails = await Promise.all(
+        myListings.map(async (listing) => {
+          try {
+            const details = await getListing(listing.id);
+            return { ...listing, ...details.listing };
+          } catch {
+            return listing;
+          }
+        })
+      );
+
+      setListings(listingsWithDetails);
 
       const bookingsData = await getAllBookings();
       setBookings(bookingsData.bookings);
@@ -43,6 +54,14 @@ export default function HostedListings() {
     fetchMyListings();
   }, [userEmail]);
 
+  useEffect(() => {
+    if (location.state?.message) {
+      setSuccess(location.state.message);
+      // Clear the message from location state
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
+
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this listing?')) return;
 
@@ -54,15 +73,20 @@ export default function HostedListings() {
     }
   };
 
-  const handlePublishClick = (listing) => {
-    setSelectedListing(listing);
-    setPublishModalOpen(true);
-  };
-
-  const handlePublish = async (availabilities) => {
+  const handlePublishClick = async (listing) => {
     try {
-      await publishListing(selectedListing.id, availabilities);
-      await fetchMyListings();
+      // Use stored availability dates from metadata
+      if (listing.metadata?.availabilityStart && listing.metadata?.availabilityEnd) {
+        const availabilities = [{
+          start: listing.metadata.availabilityStart,
+          end: listing.metadata.availabilityEnd
+        }];
+        await publishListing(listing.id, availabilities);
+        await fetchMyListings();
+        setSuccess('Listing published successfully!');
+      } else {
+        setError('Please edit the listing to add availability dates first');
+      }
     } catch (err) {
       setError(err.message || 'Failed to publish listing');
     }
@@ -121,15 +145,28 @@ export default function HostedListings() {
 
   return (
     <Container maxWidth="lg" sx={{ mt: { xs: 2, sm: 3, md: 4 }, mb: 4, px: { xs: 2, sm: 3 } }}>
-      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, gap: { xs: 2, sm: 0 }, mb: { xs: 2, sm: 3 } }}>
-        <Typography variant="h4" sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>My Listings</Typography>
-        <Box sx={{ display: 'flex', gap: { xs: 1, sm: 2 }, flexWrap: 'wrap', width: { xs: '100%', sm: 'auto' } }}>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h3" sx={{ mb: 1 }}>
+          My Listings
+        </Typography>
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+          Manage your properties and track your earnings
+        </Typography>
+
+        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => navigate('/hosted/new')}
+            size="large"
+          >
+            Create New Listing
+          </Button>
           <Button
             variant="outlined"
             startIcon={<UploadFileIcon />}
             component="label"
-            size="small"
-            sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+            size="large"
           >
             Upload JSON
             <input
@@ -139,20 +176,17 @@ export default function HostedListings() {
               onChange={handleJsonUpload}
             />
           </Button>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => navigate('/hosted/new')}
-            size="small"
-            sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' }, flex: { xs: 1, sm: 0 } }}
-          >
-            Create New Listing
-          </Button>
         </Box>
       </Box>
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
       {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
+
+      {!loading && listings.some(l => !l.published) && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          💡 <strong>Tip:</strong> Your unpublished listings won&apos;t be visible to guests. Click &quot;Publish&quot; to make them available for booking!
+        </Alert>
+      )}
 
       {!loading && listings.length > 0 && (
         <Box sx={{ mb: 4 }}>
@@ -174,54 +208,48 @@ export default function HostedListings() {
                   onDelete={handleDelete}
                   isHostView={true}
                 />
-                <Box sx={{ mt: 1, display: 'flex', gap: 1, justifyContent: 'center' }}>
+                <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
                   {listing.published ? (
                     <>
-                      <Chip label="Published" color="success" size="small" />
+                      <Chip
+                        label="Live"
+                        color="success"
+                        size="medium"
+                        sx={{ fontWeight: 600, alignSelf: 'center' }}
+                      />
                       <Button
-                        size="small"
+                        fullWidth
+                        variant="text"
+                        startIcon={<ManageSearchIcon />}
+                        onClick={() => navigate(`/listings/${listing.id}/bookings`)}
+                      >
+                        Manage Bookings
+                      </Button>
+                      <Button
+                        fullWidth
                         variant="outlined"
                         color="warning"
                         onClick={() => handleUnpublish(listing.id)}
+                        sx={{ fontSize: '0.875rem' }}
                       >
-                                                Unpublish
+                        Unpublish
                       </Button>
                     </>
                   ) : (
                     <Button
-                      size="small"
+                      fullWidth
                       variant="contained"
-                      color="primary"
                       onClick={() => handlePublishClick(listing)}
                     >
-                                            Publish
+                      Publish Listing
                     </Button>
                   )}
                 </Box>
-                {listing.published && (
-                  <Button
-                    fullWidth
-                    size="small"
-                    variant="text"
-                    startIcon={<ManageSearchIcon />}
-                    onClick={() => navigate(`/listings/${listing.id}/bookings`)}
-                    sx={{ mt: 1 }}
-                  >
-                                        Manage Bookings
-                  </Button>
-                )}
               </Box>
             </Grid>
           ))}
         </Grid>
       )}
-
-      <PublishModal
-        open={publishModalOpen}
-        onClose={() => setPublishModalOpen(false)}
-        onPublish={handlePublish}
-        listingTitle={selectedListing?.title || ''}
-      />
     </Container>
   );
 }

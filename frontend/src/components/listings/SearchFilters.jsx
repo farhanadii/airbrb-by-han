@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import {
   Box, TextField, Button, FormControl, InputLabel,
-  Select, MenuItem, Paper, Typography, Collapse, IconButton
+  Select, MenuItem, Paper, Typography, Collapse, IconButton, Divider
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import ClearIcon from '@mui/icons-material/Clear';
+import SortIcon from '@mui/icons-material/Sort';
 
 export default function SearchFilters({ onFilter }) {
   const [showFilters, setShowFilters] = useState(false);
+  const [showSort, setShowSort] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [bedroomsMin, setBedroomsMin] = useState('');
   const [bedroomsMax, setBedroomsMax] = useState('');
@@ -104,8 +106,25 @@ export default function SearchFilters({ onFilter }) {
               }
             }}
             size="small"
+            title="Filters"
           >
             <FilterListIcon />
+          </IconButton>
+          <IconButton
+            onClick={() => setShowSort(!showSort)}
+            sx={{
+              color: showSort ? 'primary.main' : '#717171',
+              bgcolor: showSort ? 'rgba(99, 102, 241, 0.08)' : 'transparent',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                bgcolor: showSort ? 'rgba(99, 102, 241, 0.12)' : 'rgba(0,0,0,0.04)',
+                transform: 'scale(1.05)'
+              }
+            }}
+            size="small"
+            title="Sort"
+          >
+            <SortIcon />
           </IconButton>
           <Button
             variant="contained"
@@ -139,6 +158,7 @@ export default function SearchFilters({ onFilter }) {
               }
             }}
             size="small"
+            title="Clear all"
           >
             <ClearIcon />
           </IconButton>
@@ -281,8 +301,27 @@ export default function SearchFilters({ onFilter }) {
             />
           </Box>
 
-          {/* Sort Options */}
-          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: { xs: 1.5, sm: 2 }, mt: 2 }}>
+        </Box>
+      </Collapse>
+
+      <Collapse in={showSort}>
+        <Divider sx={{ my: 2 }} />
+        <Box>
+          <Typography
+            variant="subtitle2"
+            gutterBottom
+            sx={{
+              fontSize: '0.95rem',
+              fontWeight: 700,
+              color: '#222',
+              mb: 2,
+              letterSpacing: '-0.01em'
+            }}
+          >
+            Sort Options
+          </Typography>
+
+          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: { xs: 1.5, sm: 2 } }}>
             <FormControl
               size="small"
               sx={{
@@ -291,7 +330,7 @@ export default function SearchFilters({ onFilter }) {
                   borderRadius: 2,
                   transition: 'all 0.3s ease',
                   '&.Mui-focused': {
-                    boxShadow: '0 2px 8px rgba(255,56,92,0.12)'
+                    boxShadow: '0 2px 8px rgba(99, 102, 241, 0.12)'
                   }
                 }
               }}
@@ -312,7 +351,7 @@ export default function SearchFilters({ onFilter }) {
                   borderRadius: 2,
                   transition: 'all 0.3s ease',
                   '&.Mui-focused': {
-                    boxShadow: '0 2px 8px rgba(255,56,92,0.12)'
+                    boxShadow: '0 2px 8px rgba(99, 102, 241, 0.12)'
                   }
                 }
               }}

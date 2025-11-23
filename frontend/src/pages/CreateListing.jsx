@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Container, TextField, Button, Typography, Box, Alert,
-  FormControl, InputLabel, Select, MenuItem, Chip, OutlinedInput, Tabs, Tab
+  FormControl, InputLabel, Select, MenuItem, Chip, OutlinedInput, Tabs, Tab,
+  IconButton, Grid
 } from '@mui/material';
-import { createListing } from '../services/api';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { createListing, publishListing } from '../services/api';
 import BedroomInput from '../components/listings/BedroomInput';
 
 const AMENITIES_OPTIONS = [
@@ -25,28 +27,54 @@ export default function CreateListing() {
     propertyType: '',
     bathrooms: '',
     bedrooms: [{ beds: 1, type: 'Single' }],
-    amenities: []
+    amenities: [],
+    images: [],
+    availabilityStart: '',
+    availabilityEnd: ''
   });
 
   const handleChange = (field, value) => {
-    setFormData({ ...formData, [field]: value });
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleThumbnailUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        handleChange('thumbnail', reader.result);
-        handleChange('youtubeUrl', '');
-      };
-      reader.readAsDataURL(file);
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.target.files);
+    const readers = files.map(file => {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(file);
+      });
+    });
+
+    Promise.all(readers).then(images => {
+      const newImages = [...formData.images, ...images];
+      handleChange('images', newImages);
+      // Set first image as thumbnail if no thumbnail exists
+      if (!formData.thumbnail && newImages.length > 0) {
+        handleChange('thumbnail', newImages[0]);
+      }
+    });
+  };
+
+  const removeImage = (index) => {
+    const newImages = formData.images.filter((_, i) => i !== index);
+    handleChange('images', newImages);
+    // If removed image was the thumbnail, set first remaining image as thumbnail
+    if (formData.thumbnail === formData.images[index]) {
+      handleChange('thumbnail', newImages.length > 0 ? newImages[0] : '');
     }
   };
 
   const extractYouTubeEmbedUrl = (url) => {
-    const videoIdMatch =
-            url.match(/(?:embed\/|v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    // Handle various YouTube URL formats:
+    // - https://www.youtube.com/watch?v=VIDEO_ID
+    // - https://youtu.be/VIDEO_ID
+    // - https://www.youtube.com/embed/VIDEO_ID
+    // - https://www.youtube.com/v/VIDEO_ID
+    const videoIdMatch = url.match(
+      /(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+    );
     if (videoIdMatch) {
       return `https://www.youtube.com/embed/${videoIdMatch[1]}`;
     }
@@ -84,12 +112,26 @@ export default function CreateListing() {
           propertyType: formData.propertyType,
           bathrooms: parseInt(formData.bathrooms) || 0,
           bedrooms: formData.bedrooms,
-          amenities: formData.amenities
+          amenities: formData.amenities,
+          images: formData.images,
+          availabilityStart: formData.availabilityStart,
+          availabilityEnd: formData.availabilityEnd
         }
       };
 
-      await createListing(listingData);
-      navigate('/hosted');
+      const result = await createListing(listingData);
+
+      // Auto-publish if availability dates are set
+      if (formData.availabilityStart && formData.availabilityEnd) {
+        const availability = [{
+          start: formData.availabilityStart,
+          end: formData.availabilityEnd
+        }];
+        await publishListing(result.listingId, availability);
+        navigate('/hosted', { state: { message: 'Listing created and published successfully!' } });
+      } else {
+        navigate('/hosted', { state: { message: 'Listing created successfully! Remember to publish it to make it visible to guests.' } });
+      }
     } catch (err) {
       setError(err.message || 'Failed to create listing');
     }
@@ -142,17 +184,16 @@ export default function CreateListing() {
 
           {thumbnailTab === 0 ? (
             <>
-              <Button variant="outlined" component="label" fullWidth sx={{
-                mt: 2
-              }}>
-                                Upload Thumbnail Image
-                <input type="file" hidden accept="image/*"
-                  onChange={handleThumbnailUpload} />
-              </Button>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 2, mb: 1 }}>
+                The first image you upload in the gallery below will be used as the thumbnail
+              </Typography>
               {formData.thumbnail && !formData.youtubeUrl && (
-                <Box sx={{ mt: 2 }}>
+                <Box sx={{ mt: 2, p: 2, border: '2px solid', borderColor: 'primary.main', borderRadius: 2 }}>
+                  <Typography variant="subtitle2" sx={{ mb: 1, color: 'primary.main', fontWeight: 600 }}>
+                    Current Thumbnail
+                  </Typography>
                   <img src={formData.thumbnail} alt="Thumbnail preview"
-                    style={{ maxWidth: '100%', maxHeight: '150px' }} />
+                    style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '8px' }} />
                 </Box>
               )}
             </>
@@ -160,15 +201,15 @@ export default function CreateListing() {
             <>
               <TextField
                 fullWidth
-                label="YouTube Embed URL"
+                label="YouTube Video URL"
                 value={formData.youtubeUrl}
                 onChange={(e) => {
                   handleChange('youtubeUrl', e.target.value);
                   handleChange('thumbnail', '');
                 }}
-                placeholder="e.g. https://www.youtube.com/embed/VIDEO_ID"
+                placeholder="e.g. https://www.youtube.com/watch?v=VIDEO_ID or https://youtu.be/VIDEO_ID"
                 sx={{ mt: 2 }}
-                helperText="Paste a YouTube embed URL"
+                helperText="Paste any YouTube video URL - we'll convert it automatically"
               />
               {formData.youtubeUrl && (
                 <Box sx={{ mt: 2 }}>
@@ -214,6 +255,75 @@ export default function CreateListing() {
           />
         </Box>
 
+        <Box sx={{ mt: { xs: 2, sm: 3 } }}>
+          <Typography variant="subtitle1" gutterBottom sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
+            Property Images
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+            Click on any image to set it as the thumbnail
+          </Typography>
+          <Button variant="outlined" component="label" fullWidth>
+            Add More Images
+            <input type="file" hidden multiple accept="image/*"
+              onChange={handleImageUpload} />
+          </Button>
+
+          <Grid container spacing={{ xs: 1, sm: 2 }} sx={{ mt: 1 }}>
+            {formData.images.map((image, index) => (
+              <Grid item xs={6} sm={4} key={index}>
+                <Box
+                  sx={{
+                    position: 'relative',
+                    cursor: 'pointer',
+                    border: formData.thumbnail === image ? '3px solid' : '2px solid transparent', borderColor: formData.thumbnail === image ? 'primary.main' : 'transparent',
+                    borderRadius: 1,
+                    transition: 'all 0.2s',
+                    '&:hover': {
+                      border: '3px solid',
+                      borderColor: 'primary.main',
+                      transform: 'scale(1.02)'
+                    }
+                  }}
+                  onClick={() => handleChange('thumbnail', image)}
+                >
+                  <img src={image} alt={`Property ${index + 1}`} style={{
+                    width: '100%', height: '150px', objectFit: 'cover', borderRadius: '4px'
+                  }} />
+                  {formData.thumbnail === image && (
+                    <Box sx={{
+                      position: 'absolute',
+                      top: 5,
+                      left: 5,
+                      bgcolor: 'primary.main',
+                      color: 'white',
+                      px: 1,
+                      py: 0.5,
+                      borderRadius: 1,
+                      fontSize: '0.75rem',
+                      fontWeight: 600
+                    }}>
+                      THUMBNAIL
+                    </Box>
+                  )}
+                  <IconButton
+                    size="small"
+                    color="error"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeImage(index);
+                    }}
+                    sx={{
+                      position: 'absolute', top: 5, right: 5, bgcolor: 'white'
+                    }}
+                  >
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </Box>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+
         <FormControl fullWidth margin="normal">
           <InputLabel>Amenities</InputLabel>
           <Select
@@ -237,13 +347,40 @@ export default function CreateListing() {
           </Select>
         </FormControl>
 
+        <Box sx={{ mt: 3 }}>
+          <Typography variant="h6" gutterBottom>
+            Availability
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Set when your property is available for bookings
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+            <TextField
+              fullWidth
+              label="Available From"
+              type="date"
+              value={formData.availabilityStart}
+              onChange={(e) => handleChange('availabilityStart', e.target.value)}
+              InputLabelProps={{ shrink: true }}
+            />
+            <TextField
+              fullWidth
+              label="Available Until"
+              type="date"
+              value={formData.availabilityEnd}
+              onChange={(e) => handleChange('availabilityEnd', e.target.value)}
+              InputLabelProps={{ shrink: true }}
+            />
+          </Box>
+        </Box>
+
         <Box sx={{ mt: { xs: 3, sm: 4 }, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
           <Button type="submit" variant="contained" size="large" fullWidth>
-                        Create Listing
+            Create Listing
           </Button>
           <Button variant="outlined" size="large" onClick={() =>
             navigate('/hosted')} fullWidth>
-                        Cancel
+            Cancel
           </Button>
         </Box>
       </Box>

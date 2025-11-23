@@ -5,7 +5,7 @@ import {
 } from '@mui/material';
 
 export default function BookingModal({ open, onClose, onBook, listingTitle,
-  pricePerNight }) {
+  pricePerNight, discountSettings = {}, availabilityStart = '', availabilityEnd = '' }) {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [error, setError] = useState('');
@@ -45,12 +45,21 @@ export default function BookingModal({ open, onClose, onBook, listingTitle,
 
   const nights = calculateNights();
 
-  // Multi-night discount calculation
+  // Multi-night discount calculation using listing's discount settings
   const calculateDiscount = (numNights) => {
-    if (numNights >= 14) return 0.15; // 15% off for 14+ nights
-    if (numNights >= 7) return 0.10;  // 10% off for 7-13 nights
-    if (numNights >= 3) return 0.05;  // 5% off for 3-6 nights
-    return 0; // No discount for 1-2 nights
+    // Only apply discounts if the host has enabled them
+    if (!discountSettings.discountsEnabled) return 0;
+
+    if (numNights >= 14 && discountSettings.discount14Nights) {
+      return discountSettings.discount14Nights / 100;
+    }
+    if (numNights >= 7 && discountSettings.discount7Nights) {
+      return discountSettings.discount7Nights / 100;
+    }
+    if (numNights >= 3 && discountSettings.discount3Nights) {
+      return discountSettings.discount3Nights / 100;
+    }
+    return 0;
   };
 
   const discount = calculateDiscount(nights);
@@ -103,6 +112,11 @@ export default function BookingModal({ open, onClose, onBook, listingTitle,
           value={startDate}
           onChange={(e) => setStartDate(e.target.value)}
           InputLabelProps={{ shrink: true }}
+          inputProps={{
+            min: availabilityStart || undefined,
+            max: availabilityEnd || undefined
+          }}
+          helperText={availabilityStart && availabilityEnd ? `Available: ${new Date(availabilityStart).toLocaleDateString()} - ${new Date(availabilityEnd).toLocaleDateString()}` : ''}
           sx={{
             mt: 2,
             mb: 2,
@@ -126,6 +140,10 @@ export default function BookingModal({ open, onClose, onBook, listingTitle,
           value={endDate}
           onChange={(e) => setEndDate(e.target.value)}
           InputLabelProps={{ shrink: true }}
+          inputProps={{
+            min: startDate || availabilityStart || undefined,
+            max: availabilityEnd || undefined
+          }}
           sx={{
             mb: 2,
             '& .MuiOutlinedInput-root': {

@@ -11,6 +11,7 @@ import EditListing from './pages/EditListing';
 import AllListings from './pages/AllListings';
 import ViewListing from './pages/ViewListing';
 import BookingRequests from './pages/BookingRequests';
+import Profile from './pages/Profile';
 import theme from './theme';
 
 function App() {
@@ -30,8 +31,8 @@ function App() {
                 <Route path="/hosted/new" element={<CreateListing />} />
                 <Route path="/listings/:id" element={<ViewListing />} />
                 <Route path="/listings/:id/edit" element={<EditListing />} />
-                <Route path="/listings/:id/bookings" element={<BookingRequests />}
-                />
+                <Route path="/listings/:id/bookings" element={<BookingRequests />} />
+                <Route path="/profile" element={<Profile />} />
                 <Route path="*" element={<Navigate to="/" />} />
               </Routes>
             </Box>

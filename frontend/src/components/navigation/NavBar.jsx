@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import NotificationsPanel from '../common/NotificationsPanel';
 import HomeIcon from '@mui/icons-material/Home';
+import PersonIcon from '@mui/icons-material/Person';
 
 export default function NavBar() {
   const navigate = useNavigate();
@@ -167,6 +168,21 @@ export default function NavBar() {
                   </Typography>
                 </Box>
                 <Divider sx={{ my: 0.5 }} />
+                <MenuItem
+                  onClick={() => { navigate('/profile'); handleMenuClose(); }}
+                  sx={{
+                    py: 1.5,
+                    px: 2.5,
+                    fontSize: '0.875rem',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      bgcolor: '#f7f7f7'
+                    }
+                  }}
+                >
+                  <PersonIcon sx={{ mr: 1.5, fontSize: '1.1rem', color: 'text.secondary' }} />
+                  Profile
+                </MenuItem>
                 <MenuItem
                   onClick={() => { navigate('/hosted'); handleMenuClose(); }}
                   sx={{

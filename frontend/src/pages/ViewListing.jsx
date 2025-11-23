@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import {
   Container, Typography, Box, Alert, Grid, Chip,
-  Paper, Divider, ImageList, ImageListItem, Button
+  Paper, Divider, Button
 } from '@mui/material';
 import BedIcon from '@mui/icons-material/Bed';
 import BathtubIcon from '@mui/icons-material/Bathtub';
@@ -13,6 +13,7 @@ import { useAuth } from '../contexts/AuthContext';
 import RatingBreakdown from '../components/common/RatingBreakdown';
 import BookingModal from '../components/bookings/BookingModal';
 import ReviewModal from '../components/bookings/ReviewModal';
+import ImageGallery from '../components/listings/ImageGallery';
 
 export default function ViewListing() {
   const { id } = useParams();
@@ -51,11 +52,11 @@ export default function ViewListing() {
     fetchData();
   }, [id, isAuthenticated]);
 
-  const handleMakeBooking = async (dateRange) => {
+  const handleMakeBooking = async (dateRange, totalPrice) => {
     try {
       setError('');
       setSuccess('');
-      await makeBooking(id, dateRange);
+      await makeBooking(id, dateRange, totalPrice);
       setSuccess('Booking request submitted successfully!');
 
       if (isAuthenticated()) {
@@ -153,17 +154,7 @@ export default function ViewListing() {
               />
             </Box>
           ) : (
-            <ImageList cols={{ xs: 1, sm: 2, md: 3 }} gap={{ xs: 4, sm: 8 }} sx={{ maxHeight: { xs: 300, sm: 350, md: 400 } }}>
-              {allImages.map((image, index) => (
-                <ImageListItem key={index}>
-                  <img
-                    src={image}
-                    alt={`${listing.title} ${index + 1}`}
-                    style={{ height: '100%', objectFit: 'cover' }}
-                  />
-                </ImageListItem>
-              ))}
-            </ImageList>
+            <ImageGallery images={allImages} title={listing.title} />
           )}
         </Box>
       )}

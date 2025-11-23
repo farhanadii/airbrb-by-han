@@ -56,8 +56,8 @@ export const leaveReview = (listingId, bookingId, review) =>
 export const getAllBookings = () =>
   apiCall('/bookings', 'GET', null, true);
 
-export const makeBooking = (listingId, dateRange) =>
-  apiCall(`/bookings/new/${listingId}`, 'POST', { dateRange }, true);
+export const makeBooking = (listingId, dateRange, totalPrice) =>
+  apiCall(`/bookings/new/${listingId}`, 'POST', { dateRange, totalPrice }, true);
 
 export const deleteBooking = (id) =>
   apiCall(`/bookings/${id}`, 'DELETE', null, true);

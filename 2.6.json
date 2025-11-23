@@ -1,0 +1,43 @@
+{
+  "title": "Luxurious Beachfront Villa",
+  "address": "45 Ocean Drive, Bondi Beach, NSW 2026, Australia",
+  "price": 450,
+  "thumbnail": "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800",
+  "metadata": {
+    "propertyType": "Villa",
+    "bathrooms": 3,
+    "bedrooms": [
+      {
+        "beds": 1,
+        "type": "King"
+      },
+      {
+        "beds": 1,
+        "type": "Queen"
+      },
+      {
+        "beds": 2,
+        "type": "Single"
+      }
+    ],
+    "amenities": [
+      "WiFi",
+      "Kitchen",
+      "Air Conditioning",
+      "Pool",
+      "Parking",
+      "Hot Tub"
+    ],
+    "images": [
+      "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800",
+      "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800",
+      "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800"
+    ],
+    "availabilityStart": "2025-01-01",
+    "availabilityEnd": "2025-12-31",
+    "discountsEnabled": true,
+    "discount3Nights": 5,
+    "discount7Nights": 10,
+    "discount14Nights": 15
+  }
+}

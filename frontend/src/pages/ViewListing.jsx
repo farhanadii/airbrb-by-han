@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   Container, Typography, Box, Alert, Grid, Chip,
-  Paper, Divider, Button
+  Paper, Divider, Button, Dialog, DialogTitle, DialogContent, DialogActions
 } from '@mui/material';
 import BedIcon from '@mui/icons-material/Bed';
 import BathtubIcon from '@mui/icons-material/Bathtub';
@@ -17,6 +17,7 @@ import ImageGallery from '../components/listings/ImageGallery';
 
 export default function ViewListing() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [listing, setListing] = useState(null);
   const [userBookings, setUserBookings] = useState([]);
   const [error, setError] = useState('');
@@ -24,6 +25,7 @@ export default function ViewListing() {
   const [loading, setLoading] = useState(true);
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [loginPromptOpen, setLoginPromptOpen] = useState(false);
   const { isAuthenticated } = useAuth();
 
   useEffect(() => {
@@ -57,7 +59,7 @@ export default function ViewListing() {
       setError('');
       setSuccess('');
       await makeBooking(id, dateRange, totalPrice);
-      setSuccess('Booking request submitted successfully!');
+      setSuccess('Your booking request has been placed! Waiting for the property owner to confirm your reservation.');
 
       if (isAuthenticated()) {
         const bookingsData = await getAllBookings();
@@ -90,6 +92,14 @@ export default function ViewListing() {
       setListing(data.listing);
     } catch (err) {
       setError(err.message || 'Failed to submit review');
+    }
+  };
+
+  const handleBookingButtonClick = () => {
+    if (isAuthenticated()) {
+      setBookingModalOpen(true);
+    } else {
+      setLoginPromptOpen(true);
     }
   };
 
@@ -250,17 +260,15 @@ export default function ViewListing() {
                             ${listing.price} / night
             </Typography>
 
-            {isAuthenticated() && (
-              <Button
-                variant="contained"
-                fullWidth
-                size="large"
-                sx={{ mt: 2 }}
-                onClick={() => setBookingModalOpen(true)}
-              >
-                                Make a Booking
-              </Button>
-            )}
+            <Button
+              variant="contained"
+              fullWidth
+              size="large"
+              sx={{ mt: 2 }}
+              onClick={handleBookingButtonClick}
+            >
+                            Make a Booking
+            </Button>
 
             {userBookings.length > 0 && (
               <Box sx={{ mt: 2 }}>
@@ -291,6 +299,14 @@ export default function ViewListing() {
         onBook={handleMakeBooking}
         listingTitle={listing.title}
         pricePerNight={listing.price}
+        discountSettings={{
+          discountsEnabled: listing.metadata?.discountsEnabled || false,
+          discount3Nights: listing.metadata?.discount3Nights || 0,
+          discount7Nights: listing.metadata?.discount7Nights || 0,
+          discount14Nights: listing.metadata?.discount14Nights || 0
+        }}
+        availabilityStart={listing.metadata?.availabilityStart || ''}
+        availabilityEnd={listing.metadata?.availabilityEnd || ''}
       />
 
       <ReviewModal
@@ -299,6 +315,42 @@ export default function ViewListing() {
         onSubmit={handleLeaveReview}
         listingTitle={listing.title}
       />
+
+      <Dialog
+        open={loginPromptOpen}
+        onClose={() => setLoginPromptOpen(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Login Required</DialogTitle>
+        <DialogContent>
+          <Typography>
+            You need to be logged in to make a booking. Please log in or sign up to continue.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button
+            onClick={() => setLoginPromptOpen(false)}
+            variant="outlined"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={() => navigate('/login')}
+            variant="contained"
+            color="primary"
+          >
+            Log In
+          </Button>
+          <Button
+            onClick={() => navigate('/register')}
+            variant="contained"
+            color="secondary"
+          >
+            Sign Up
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 }

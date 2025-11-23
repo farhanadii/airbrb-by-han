@@ -1,10 +1,10 @@
-import { Card, CardMedia, CardContent, Typography, Box, IconButton } from '@mui/material';
+import { Card, CardMedia, CardContent, Typography, Box, IconButton, Chip } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import StarIcon from '@mui/icons-material/Star';
 import { useNavigate } from 'react-router-dom';
 
-export default function ListingCard({ listing, onDelete, isHostView = false }) {
+export default function ListingCard({ listing, onDelete, isHostView = false, published }) {
   const navigate = useNavigate();
 
   const handleCardClick = () => {
@@ -39,6 +39,7 @@ export default function ListingCard({ listing, onDelete, isHostView = false }) {
       sx={{
         cursor: 'pointer',
         height: '100%',
+        maxHeight: 450,
         display: 'flex',
         flexDirection: 'column',
         bgcolor: 'white',
@@ -58,6 +59,9 @@ export default function ListingCard({ listing, onDelete, isHostView = false }) {
         sx={{
           position: 'relative',
           overflow: 'hidden',
+          height: 280,
+          minHeight: 280,
+          flexShrink: 0,
           '&::after': {
             content: '""',
             position: 'absolute',
@@ -72,7 +76,7 @@ export default function ListingCard({ listing, onDelete, isHostView = false }) {
         }}
       >
         {isYouTube ? (
-          <Box sx={{ height: 280, position: 'relative' }}>
+          <Box sx={{ width: '100%', height: '100%', position: 'relative' }}>
             <iframe
               width="100%"
               height="100%"
@@ -81,16 +85,17 @@ export default function ListingCard({ listing, onDelete, isHostView = false }) {
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
-              style={{ pointerEvents: 'none' }}
+              style={{ pointerEvents: 'none', display: 'block' }}
             />
           </Box>
         ) : (
           <CardMedia
             component="img"
-            height="280"
             image={thumbnail}
             alt={listing.title}
             sx={{
+              width: '100%',
+              height: '100%',
               objectFit: 'cover',
               transition: 'transform 0.3s ease',
               '&:hover': {
@@ -100,42 +105,75 @@ export default function ListingCard({ listing, onDelete, isHostView = false }) {
           />
         )}
         {isHostView && (
-          <Box sx={{ position: 'absolute', top: 12, right: 12, display: 'flex', gap: 0.75 }}>
-            <IconButton
-              onClick={handleEdit}
-              size="small"
-              sx={{
-                bgcolor: 'rgba(255,255,255,0.95)',
-                backdropFilter: 'blur(8px)',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  bgcolor: 'white',
-                  transform: 'scale(1.1)',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-                }
-              }}
-            >
-              <EditIcon fontSize="small" />
-            </IconButton>
-            <IconButton
-              onClick={handleDelete}
-              size="small"
-              sx={{
-                bgcolor: 'rgba(255,255,255,0.95)',
-                backdropFilter: 'blur(8px)',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  bgcolor: 'white',
-                  transform: 'scale(1.1)',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-                }
-              }}
-            >
-              <DeleteIcon fontSize="small" color="error" />
-            </IconButton>
-          </Box>
+          <>
+            {/* Status Badge */}
+            <Box sx={{ position: 'absolute', top: 12, left: 12 }}>
+              {published ? (
+                <Chip
+                  label="Live"
+                  color="success"
+                  size="small"
+                  sx={{
+                    fontWeight: 600,
+                    bgcolor: 'success.main',
+                    color: 'white',
+                    backdropFilter: 'blur(8px)',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                  }}
+                />
+              ) : (
+                <Chip
+                  label="Unpublished"
+                  size="small"
+                  sx={{
+                    fontWeight: 600,
+                    bgcolor: 'rgba(117,117,117,0.95)',
+                    color: 'white',
+                    backdropFilter: 'blur(8px)',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                  }}
+                />
+              )}
+            </Box>
+
+            {/* Action Buttons */}
+            <Box sx={{ position: 'absolute', top: 12, right: 12, display: 'flex', gap: 0.75 }}>
+              <IconButton
+                onClick={handleEdit}
+                size="small"
+                sx={{
+                  bgcolor: 'rgba(255,255,255,0.95)',
+                  backdropFilter: 'blur(8px)',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    bgcolor: 'white',
+                    transform: 'scale(1.1)',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                  }
+                }}
+              >
+                <EditIcon fontSize="small" />
+              </IconButton>
+              <IconButton
+                onClick={handleDelete}
+                size="small"
+                sx={{
+                  bgcolor: 'rgba(255,255,255,0.95)',
+                  backdropFilter: 'blur(8px)',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    bgcolor: 'white',
+                    transform: 'scale(1.1)',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                  }
+                }}
+              >
+                <DeleteIcon fontSize="small" color="error" />
+              </IconButton>
+            </Box>
+          </>
         )}
       </Box>
       <CardContent sx={{ flexGrow: 1, p: 2, '&:last-child': { pb: 2 } }}>

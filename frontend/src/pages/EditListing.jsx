@@ -30,7 +30,9 @@ export default function EditListing() {
     bathrooms: '',
     bedrooms: [{ beds: 1, type: 'Single' }],
     amenities: [],
-    images: []
+    images: [],
+    availabilityStart: '',
+    availabilityEnd: ''
   });
 
   useEffect(() => {
@@ -53,7 +55,9 @@ export default function EditListing() {
             beds: 1, type: 'Single'
           }],
           amenities: listing.metadata?.amenities || [],
-          images: listing.metadata?.images || []
+          images: listing.metadata?.images || [],
+          availabilityStart: listing.metadata?.availabilityStart || '',
+          availabilityEnd: listing.metadata?.availabilityEnd || ''
         });
 
         if (isYouTube) {
@@ -70,7 +74,7 @@ export default function EditListing() {
   }, [id]);
 
   const handleChange = (field, value) => {
-    setFormData({ ...formData, [field]: value });
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleThumbnailUpload = (e) => {
@@ -86,8 +90,14 @@ export default function EditListing() {
   };
 
   const extractYouTubeEmbedUrl = (url) => {
-    const videoIdMatch =
-            url.match(/(?:embed\/|v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    // Handle various YouTube URL formats:
+    // - https://www.youtube.com/watch?v=VIDEO_ID
+    // - https://youtu.be/VIDEO_ID
+    // - https://www.youtube.com/embed/VIDEO_ID
+    // - https://www.youtube.com/v/VIDEO_ID
+    const videoIdMatch = url.match(
+      /(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+    );
     if (videoIdMatch) {
       return `https://www.youtube.com/embed/${videoIdMatch[1]}`;
     }
@@ -105,12 +115,22 @@ export default function EditListing() {
     });
 
     Promise.all(readers).then(images => {
-      handleChange('images', [...formData.images, ...images]);
+      const newImages = [...formData.images, ...images];
+      handleChange('images', newImages);
+      // Set first image as thumbnail if no thumbnail exists or thumbnail is YouTube
+      if ((!formData.thumbnail || formData.thumbnail.includes('youtube')) && newImages.length > 0) {
+        handleChange('thumbnail', newImages[0]);
+      }
     });
   };
 
   const removeImage = (index) => {
-    handleChange('images', formData.images.filter((_, i) => i !== index));
+    const newImages = formData.images.filter((_, i) => i !== index);
+    handleChange('images', newImages);
+    // If removed image was the thumbnail, set first remaining image as thumbnail
+    if (formData.thumbnail === formData.images[index]) {
+      handleChange('thumbnail', newImages.length > 0 ? newImages[0] : '');
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -145,7 +165,9 @@ export default function EditListing() {
           bathrooms: parseInt(formData.bathrooms) || 0,
           bedrooms: formData.bedrooms,
           amenities: formData.amenities,
-          images: formData.images
+          images: formData.images,
+          availabilityStart: formData.availabilityStart,
+          availabilityEnd: formData.availabilityEnd
         }
       };
 
@@ -228,15 +250,15 @@ export default function EditListing() {
             <>
               <TextField
                 fullWidth
-                label="YouTube Embed URL"
+                label="YouTube Video URL"
                 value={formData.youtubeUrl}
                 onChange={(e) => {
                   handleChange('youtubeUrl', e.target.value);
                   handleChange('thumbnail', '');
                 }}
-                placeholder="e.g. https://www.youtube.com/embed/VIDEO_ID"
+                placeholder="e.g. https://www.youtube.com/watch?v=VIDEO_ID or https://youtu.be/VIDEO_ID"
                 sx={{ mt: 2 }}
-                helperText="Paste a YouTube embed URL"
+                helperText="Paste any YouTube video URL - we'll convert it automatically"
               />
               {formData.youtubeUrl && (
                 <Box sx={{ mt: 2 }}>
@@ -302,10 +324,14 @@ export default function EditListing() {
         </FormControl>
 
         <Box sx={{ mt: { xs: 2, sm: 3 } }}>
-          <Typography variant="subtitle1" gutterBottom sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>Property
-                        Images</Typography>
+          <Typography variant="subtitle1" gutterBottom sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
+            Property Images
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+            Click on any image to set it as the thumbnail
+          </Typography>
           <Button variant="outlined" component="label" fullWidth>
-                        Add More Images
+            Add More Images
             <input type="file" hidden multiple accept="image/*"
               onChange={handleImageUpload} />
           </Button>
@@ -313,17 +339,49 @@ export default function EditListing() {
           <Grid container spacing={{ xs: 1, sm: 2 }} sx={{ mt: 1 }}>
             {formData.images.map((image, index) => (
               <Grid item xs={6} sm={4} key={index}>
-                <Box sx={{ position: 'relative' }}>
+                <Box
+                  sx={{
+                    position: 'relative',
+                    cursor: 'pointer',
+                    border: formData.thumbnail === image ? '3px solid' : '2px solid transparent', borderColor: formData.thumbnail === image ? 'primary.main' : 'transparent',
+                    borderRadius: 1,
+                    transition: 'all 0.2s',
+                    '&:hover': {
+                      border: '3px solid',
+                      borderColor: 'primary.main',
+                      transform: 'scale(1.02)'
+                    }
+                  }}
+                  onClick={() => handleChange('thumbnail', image)}
+                >
                   <img src={image} alt={`Property ${index + 1}`} style={{
-                    width: '100%', height: '150px', objectFit: 'cover'
+                    width: '100%', height: '150px', objectFit: 'cover', borderRadius: '4px'
                   }} />
+                  {formData.thumbnail === image && (
+                    <Box sx={{
+                      position: 'absolute',
+                      top: 5,
+                      left: 5,
+                      bgcolor: 'primary.main',
+                      color: 'white',
+                      px: 1,
+                      py: 0.5,
+                      borderRadius: 1,
+                      fontSize: '0.75rem',
+                      fontWeight: 600
+                    }}>
+                      THUMBNAIL
+                    </Box>
+                  )}
                   <IconButton
                     size="small"
                     color="error"
-                    onClick={() => removeImage(index)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeImage(index);
+                    }}
                     sx={{
-                      position: 'absolute', top: 5, right: 5, bgcolor:
-                                                'white'
+                      position: 'absolute', top: 5, right: 5, bgcolor: 'white'
                     }}
                   >
                     <DeleteIcon fontSize="small" />
@@ -334,13 +392,40 @@ export default function EditListing() {
           </Grid>
         </Box>
 
+        <Box sx={{ mt: 3 }}>
+          <Typography variant="h6" gutterBottom>
+            Availability
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Set when your property is available for bookings
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+            <TextField
+              fullWidth
+              label="Available From"
+              type="date"
+              value={formData.availabilityStart}
+              onChange={(e) => handleChange('availabilityStart', e.target.value)}
+              InputLabelProps={{ shrink: true }}
+            />
+            <TextField
+              fullWidth
+              label="Available Until"
+              type="date"
+              value={formData.availabilityEnd}
+              onChange={(e) => handleChange('availabilityEnd', e.target.value)}
+              InputLabelProps={{ shrink: true }}
+            />
+          </Box>
+        </Box>
+
         <Box sx={{ mt: { xs: 3, sm: 4 }, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
           <Button type="submit" variant="contained" size="large" fullWidth>
-                        Save Changes
+            Save Changes
           </Button>
           <Button variant="outlined" size="large" onClick={() =>
             navigate('/hosted')} fullWidth>
-                        Cancel
+            Cancel
           </Button>
         </Box>
       </Box>

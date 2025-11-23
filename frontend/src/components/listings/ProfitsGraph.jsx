@@ -14,17 +14,23 @@ export default function ProfitsGraph({ bookings, listings }) {
     bookings.forEach(booking => {
       if (booking.status !== 'accepted') return;
 
-      const listing = listings.find(l => l.id === booking.listingId);
-      if (!listing) return;
-
       const start = new Date(booking.dateRange.start);
       const end = new Date(booking.dateRange.end);
 
-      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      const nights = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+
+      const totalPrice = booking.totalPrice || (() => {
+        const listing = listings.find(l => l.id === booking.listingId);
+        return listing ? listing.price * nights : 0;
+      })();
+
+      const pricePerDay = nights > 0 ? totalPrice / nights : 0;
+
+      for (let d = new Date(start); d < end; d.setDate(d.getDate() + 1)) {
         const daysAgo = Math.floor((today - d) / (1000 * 60 * 60 * 24));
 
         if (daysAgo >= 0 && daysAgo <= 30) {
-          dailyProfits[daysAgo] += listing.price;
+          dailyProfits[daysAgo] += pricePerDay;
         }
       }
     });
@@ -45,10 +51,15 @@ export default function ProfitsGraph({ bookings, listings }) {
       background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
       color: 'white'
     }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-        <InsightsIcon sx={{ fontSize: 28, color: 'white' }} />
-        <Typography variant="h6" sx={{ fontWeight: 600, color: 'white' }}>
-          Earnings Overview
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <InsightsIcon sx={{ fontSize: 28, color: 'white' }} />
+          <Typography variant="h6" sx={{ fontWeight: 600, color: 'white' }}>
+            Earnings Overview
+          </Typography>
+        </Box>
+        <Typography variant="body2" sx={{ opacity: 0.85, color: 'white', fontSize: '0.875rem', fontWeight: 500 }}>
+          Last 30 Days
         </Typography>
       </Box>
 
@@ -125,7 +136,7 @@ export default function ProfitsGraph({ bookings, listings }) {
         alignItems: 'center'
       }}>
         <Typography variant="body2" sx={{ opacity: 0.9, color: 'white' }}>
-          Total Earnings (30 days)
+          Total Earnings
         </Typography>
         <Typography variant="h5" sx={{ fontWeight: 700, color: 'white' }}>
           ${totalProfit.toFixed(2)}

@@ -34,52 +34,183 @@ export default function ListingCard({ listing, onDelete, isHostView = false }) {
     : null;
 
   return (
-    <Card elevation={0} sx={{ cursor: 'pointer', height: '100%', display: 'flex', flexDirection: 'column', bgcolor: 'transparent', transition: 'transform 0.2s', '&:hover': { transform: 'translateY(-4px)' } }} onClick={handleCardClick}>
-      <Box sx={{ position: 'relative', borderRadius: 2, overflow: 'hidden', mb: 1 }}>
+    <Card
+      elevation={0}
+      sx={{
+        cursor: 'pointer',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        bgcolor: 'white',
+        borderRadius: 2.5,
+        overflow: 'hidden',
+        transition: 'all 0.3s ease',
+        border: '1px solid transparent',
+        '&:hover': {
+          transform: 'translateY(-4px)',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+          border: '1px solid rgba(0,0,0,0.08)'
+        }
+      }}
+      onClick={handleCardClick}
+    >
+      <Box
+        sx={{
+          position: 'relative',
+          overflow: 'hidden',
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            inset: 0,
+            background: 'linear-gradient(180deg, transparent 60%, rgba(0,0,0,0.05) 100%)',
+            opacity: 0,
+            transition: 'opacity 0.3s ease'
+          },
+          '&:hover::after': {
+            opacity: 1
+          }
+        }}
+      >
         {isYouTube ? (
           <Box sx={{ height: 280, position: 'relative' }}>
-            <iframe width="100%" height="100%" src={thumbnail} title={listing.title} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen style={{ pointerEvents: 'none' }} />
+            <iframe
+              width="100%"
+              height="100%"
+              src={thumbnail}
+              title={listing.title}
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              style={{ pointerEvents: 'none' }}
+            />
           </Box>
         ) : (
-          <CardMedia component="img" height="280" image={thumbnail} alt={listing.title} sx={{ objectFit: 'cover' }} />
+          <CardMedia
+            component="img"
+            height="280"
+            image={thumbnail}
+            alt={listing.title}
+            sx={{
+              objectFit: 'cover',
+              transition: 'transform 0.3s ease',
+              '&:hover': {
+                transform: 'scale(1.05)'
+              }
+            }}
+          />
         )}
         {isHostView && (
-          <Box sx={{ position: 'absolute', top: 12, right: 12, display: 'flex', gap: 0.5 }}>
-            <IconButton onClick={handleEdit} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.9)', '&:hover': { bgcolor: 'white' } }}>
+          <Box sx={{ position: 'absolute', top: 12, right: 12, display: 'flex', gap: 0.75 }}>
+            <IconButton
+              onClick={handleEdit}
+              size="small"
+              sx={{
+                bgcolor: 'rgba(255,255,255,0.95)',
+                backdropFilter: 'blur(8px)',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  bgcolor: 'white',
+                  transform: 'scale(1.1)',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                }
+              }}
+            >
               <EditIcon fontSize="small" />
             </IconButton>
-            <IconButton onClick={handleDelete} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.9)', '&:hover': { bgcolor: 'white' } }}>
+            <IconButton
+              onClick={handleDelete}
+              size="small"
+              sx={{
+                bgcolor: 'rgba(255,255,255,0.95)',
+                backdropFilter: 'blur(8px)',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  bgcolor: 'white',
+                  transform: 'scale(1.1)',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                }
+              }}
+            >
               <DeleteIcon fontSize="small" color="error" />
             </IconButton>
           </Box>
         )}
       </Box>
-      <CardContent sx={{ flexGrow: 1, p: 0, '&:last-child': { pb: 0 } }}>
+      <CardContent sx={{ flexGrow: 1, p: 2, '&:last-child': { pb: 2 } }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 0.5 }}>
-          <Typography variant="body1" sx={{ fontWeight: 600, color: '#222', fontSize: '0.95rem', lineHeight: 1.3 }} noWrap>
+          <Typography
+            variant="body1"
+            sx={{
+              fontWeight: 600,
+              color: '#222',
+              fontSize: '1rem',
+              lineHeight: 1.4,
+              letterSpacing: '-0.01em'
+            }}
+            noWrap
+          >
             {listing.title}
           </Typography>
           {avgRating && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3, flexShrink: 0, ml: 1 }}>
-              <StarIcon sx={{ fontSize: 14, color: '#222' }} />
-              <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.875rem', color: '#222' }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.4,
+                flexShrink: 0,
+                ml: 1,
+                bgcolor: 'rgba(0,0,0,0.03)',
+                px: 1,
+                py: 0.25,
+                borderRadius: 1.5
+              }}
+            >
+              <StarIcon sx={{ fontSize: 14, color: 'warning.main' }} />
+              <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.875rem', color: '#222' }}>
                 {avgRating}
               </Typography>
             </Box>
           )}
         </Box>
-        <Typography variant="body2" sx={{ color: '#717171', fontSize: '0.875rem', mb: 0.25 }}>
+        <Typography
+          variant="body2"
+          sx={{
+            color: '#717171',
+            fontSize: '0.875rem',
+            mb: 0.5,
+            fontWeight: 500
+          }}
+        >
           {listing.metadata?.propertyType || 'Property'}
         </Typography>
-        <Typography variant="body2" sx={{ color: '#717171', fontSize: '0.875rem', mb: 1 }}>
-          {totalBeds} bed{totalBeds !== 1 ? 's' : ''} · {listing.metadata?.bathrooms || 0} bath{listing.metadata?.bathrooms !== 1 ? 's' : ''}
+        <Typography
+          variant="body2"
+          sx={{
+            color: '#717171',
+            fontSize: '0.875rem',
+            mb: 1.5,
+            lineHeight: 1.5
+          }}
+        >
+          {totalBeds} bed{totalBeds !== 1 ? 's' : ''} · {listing.metadata?.bathrooms || 0} bath
+          {listing.metadata?.bathrooms !== 1 ? 's' : ''}
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.5 }}>
-          <Typography variant="body1" sx={{ fontWeight: 600, color: '#222', fontSize: '0.95rem' }}>
-                        ${listing.price}
+          <Typography
+            variant="body1"
+            sx={{
+              fontWeight: 700,
+              color: '#222',
+              fontSize: '1.05rem',
+              letterSpacing: '-0.02em'
+            }}
+          >
+            ${listing.price}
           </Typography>
-          <Typography variant="body2" sx={{ color: '#717171', fontSize: '0.875rem' }}>
-                        night
+          <Typography variant="body2" sx={{ color: '#717171', fontSize: '0.875rem', fontWeight: 400 }}>
+            night
           </Typography>
         </Box>
       </CardContent>

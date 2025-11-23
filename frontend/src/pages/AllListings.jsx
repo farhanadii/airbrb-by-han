@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Container, Grid, Typography, Box, Alert } from '@mui/material';
-import { getAllListings, getAllBookings } from '../services/api';
+import { getAllListings, getListing, getAllBookings } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import ListingCard from '../components/listings/ListingCard';
 import SearchFilters from '../components/listings/SearchFilters';
@@ -18,7 +18,19 @@ export default function AllListings() {
         setLoading(true);
         const data = await getAllListings();
 
-        let publishedListings = data.listings.filter(listing =>
+        // Fetch full details for each listing to check published status
+        const listingsWithDetails = await Promise.all(
+          data.listings.map(async (listing) => {
+            try {
+              const details = await getListing(listing.id);
+              return { ...listing, ...details.listing };
+            } catch {
+              return listing;
+            }
+          })
+        );
+
+        let publishedListings = listingsWithDetails.filter(listing =>
           listing.published);
 
         if (isAuthenticated()) {
@@ -158,12 +170,12 @@ export default function AllListings() {
 
   return (
     <Container maxWidth="lg" sx={{ mt: { xs: 2, sm: 3, md: 4 }, mb: 4, px: { xs: 2, sm: 3 } }}>
-      <Box sx={{ mb: { xs: 2, sm: 3 } }}>
-        <Typography variant="h4" gutterBottom sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
-          All Listings
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h3" sx={{ mb: 1 }}>
+          Explore Stays
         </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
-          Discover amazing places to stay
+        <Typography variant="body1" color="text.secondary">
+          Find your perfect home away from home
         </Typography>
       </Box>
 
@@ -172,9 +184,21 @@ export default function AllListings() {
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
       {loading ? (
-        <Typography>Loading...</Typography>
+        <Box sx={{ textAlign: 'center', py: 8 }}>
+          <Typography variant="h6" color="text.secondary">Loading amazing places...</Typography>
+        </Box>
       ) : filteredListings.length === 0 ? (
-        <Typography>No listings found matching your criteria.</Typography>
+        <Box sx={{ textAlign: 'center', py: 8, px: 2 }}>
+          <Typography variant="h5" gutterBottom sx={{ color: '#222', fontWeight: 600, mb: 2 }}>
+            No listings found
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+            {allListings.length === 0
+              ? 'There are no published listings yet. Check back soon or become a host!'
+              : 'Try adjusting your search filters to find more properties.'
+            }
+          </Typography>
+        </Box>
       ) : (
         <Grid container spacing={{ xs: 2, sm: 3 }}>
           {filteredListings.map((listing) => (

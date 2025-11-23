@@ -29,7 +29,7 @@ describe('Happy Path - User Registration and Listing Creation', () => {
     fireEvent.click(registerNavLink);
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: /register/i })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /create account/i })).toBeInTheDocument();
     });
 
     // Step 2: Fill out registration form

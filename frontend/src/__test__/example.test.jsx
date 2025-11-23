@@ -10,6 +10,6 @@ describe("example test", () => {
   it("renders the app with navigation", () => {
     render(<App />);
     expect(screen.getByText(/airbrb/i)).toBeInTheDocument();
-    expect(screen.getByText(/explore/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /explore/i })).toBeInTheDocument();
   });
 });

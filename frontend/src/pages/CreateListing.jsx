@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Container, TextField, Button, Typography, Box, Alert,
-  FormControl, InputLabel, Select, MenuItem, Chip, OutlinedInput, Tabs, Tab,
-  IconButton, Grid
+  FormControl, Chip, Tabs, Tab,
+  IconButton, Grid, Switch, FormControlLabel, Checkbox, FormGroup
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { createListing, publishListing } from '../services/api';
@@ -30,7 +30,11 @@ export default function CreateListing() {
     amenities: [],
     images: [],
     availabilityStart: '',
-    availabilityEnd: ''
+    availabilityEnd: '',
+    discountsEnabled: false,
+    discount3Nights: '',
+    discount7Nights: '',
+    discount14Nights: ''
   });
 
   const handleChange = (field, value) => {
@@ -39,7 +43,14 @@ export default function CreateListing() {
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
-    const readers = files.map(file => {
+    const remainingSlots = 10 - formData.images.length;
+    const filesToUpload = files.slice(0, remainingSlots);
+
+    if (files.length > remainingSlots) {
+      alert(`You can only upload ${remainingSlots} more image(s). Maximum is 10 images.`);
+    }
+
+    const readers = filesToUpload.map(file => {
       return new Promise((resolve) => {
         const reader = new FileReader();
         reader.onloadend = () => resolve(reader.result);
@@ -115,7 +126,11 @@ export default function CreateListing() {
           amenities: formData.amenities,
           images: formData.images,
           availabilityStart: formData.availabilityStart,
-          availabilityEnd: formData.availabilityEnd
+          availabilityEnd: formData.availabilityEnd,
+          discountsEnabled: formData.discountsEnabled,
+          discount3Nights: formData.discountsEnabled ? parseFloat(formData.discount3Nights) || 0 : 0,
+          discount7Nights: formData.discountsEnabled ? parseFloat(formData.discount7Nights) || 0 : 0,
+          discount14Nights: formData.discountsEnabled ? parseFloat(formData.discount14Nights) || 0 : 0
         }
       };
 
@@ -259,13 +274,27 @@ export default function CreateListing() {
           <Typography variant="subtitle1" gutterBottom sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
             Property Images
           </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+            Upload up to 10 photos to better showcase your property
+          </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
             Click on any image to set it as the thumbnail
           </Typography>
-          <Button variant="outlined" component="label" fullWidth>
-            Add More Images
-            <input type="file" hidden multiple accept="image/*"
-              onChange={handleImageUpload} />
+          <Button
+            variant="outlined"
+            component="label"
+            fullWidth
+            disabled={formData.images.length >= 10}
+          >
+            {formData.images.length >= 10 ? 'Maximum images reached (10/10)' : `Add Images (${formData.images.length}/10)`}
+            <input
+              type="file"
+              hidden
+              multiple
+              accept="image/*"
+              onChange={handleImageUpload}
+              disabled={formData.images.length >= 10}
+            />
           </Button>
 
           <Grid container spacing={{ xs: 1, sm: 2 }} sx={{ mt: 1 }}>
@@ -325,26 +354,51 @@ export default function CreateListing() {
         </Box>
 
         <FormControl fullWidth margin="normal">
-          <InputLabel>Amenities</InputLabel>
-          <Select
-            multiple
-            value={formData.amenities}
-            onChange={(e) => handleChange('amenities', e.target.value)}
-            input={<OutlinedInput label="Amenities" />}
-            renderValue={(selected) => (
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                {selected.map((value) => (
-                  <Chip key={value} label={value} size="small" />
+          <Typography variant="subtitle1" gutterBottom sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
+            Amenities
+          </Typography>
+          <Box sx={{
+            border: '1px solid rgba(0,0,0,0.23)',
+            borderRadius: 2,
+            p: 2,
+            mb: 1
+          }}>
+            <FormGroup>
+              <Grid container spacing={1}>
+                {AMENITIES_OPTIONS.map((amenity) => (
+                  <Grid item xs={6} sm={4} key={amenity}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={formData.amenities.includes(amenity)}
+                          onChange={(e) => {
+                            const newAmenities = e.target.checked
+                              ? [...formData.amenities, amenity]
+                              : formData.amenities.filter(a => a !== amenity);
+                            handleChange('amenities', newAmenities);
+                          }}
+                          size="small"
+                        />
+                      }
+                      label={<Typography variant="body2">{amenity}</Typography>}
+                    />
+                  </Grid>
                 ))}
-              </Box>
-            )}
-          >
-            {AMENITIES_OPTIONS.map((amenity) => (
-              <MenuItem key={amenity} value={amenity}>
-                {amenity}
-              </MenuItem>
-            ))}
-          </Select>
+              </Grid>
+            </FormGroup>
+          </Box>
+          {formData.amenities.length > 0 && (
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 1 }}>
+              {formData.amenities.map((value) => (
+                <Chip
+                  key={value}
+                  label={value}
+                  size="small"
+                  onDelete={() => handleChange('amenities', formData.amenities.filter(a => a !== value))}
+                />
+              ))}
+            </Box>
+          )}
         </FormControl>
 
         <Box sx={{ mt: 3 }}>
@@ -372,6 +426,58 @@ export default function CreateListing() {
               InputLabelProps={{ shrink: true }}
             />
           </Box>
+        </Box>
+
+        <Box sx={{ mt: 3 }}>
+          <Typography variant="h6" gutterBottom>
+            Multi-Night Discounts (Optional)
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Offer discounts for longer stays to attract more bookings
+          </Typography>
+
+          <FormControlLabel
+            control={
+              <Switch
+                checked={formData.discountsEnabled}
+                onChange={(e) => handleChange('discountsEnabled', e.target.checked)}
+                color="primary"
+              />
+            }
+            label="Enable multi-night discounts"
+          />
+
+          {formData.discountsEnabled && (
+            <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <TextField
+                fullWidth
+                label="3-6 nights discount (%)"
+                type="number"
+                value={formData.discount3Nights}
+                onChange={(e) => handleChange('discount3Nights', e.target.value)}
+                inputProps={{ min: 0, max: 100, step: 1 }}
+                helperText="e.g., 5 for 5% off"
+              />
+              <TextField
+                fullWidth
+                label="7-13 nights discount (%)"
+                type="number"
+                value={formData.discount7Nights}
+                onChange={(e) => handleChange('discount7Nights', e.target.value)}
+                inputProps={{ min: 0, max: 100, step: 1 }}
+                helperText="e.g., 10 for 10% off"
+              />
+              <TextField
+                fullWidth
+                label="14+ nights discount (%)"
+                type="number"
+                value={formData.discount14Nights}
+                onChange={(e) => handleChange('discount14Nights', e.target.value)}
+                inputProps={{ min: 0, max: 100, step: 1 }}
+                helperText="e.g., 15 for 15% off"
+              />
+            </Box>
+          )}
         </Box>
 
         <Box sx={{ mt: { xs: 3, sm: 4 }, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>

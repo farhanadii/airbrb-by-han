@@ -6,6 +6,7 @@ import ListingCard from '../components/listings/ListingCard';
 import PersonIcon from '@mui/icons-material/Person';
 import HomeIcon from '@mui/icons-material/Home';
 import BookmarksIcon from '@mui/icons-material/Bookmarks';
+import HistoryIcon from '@mui/icons-material/History';
 
 function TabPanel({ children, value, index }) {
   return (
@@ -76,6 +77,10 @@ export default function Profile() {
     b.status === 'accepted' && new Date(b.dateRange.end) >= new Date()
   );
 
+  const pastBookings = bookingsWithDetails.filter(b =>
+    b.status === 'accepted' && new Date(b.dateRange.end) < new Date()
+  );
+
   const publishedListings = myListings.filter(l => l.published);
   const unpublishedListings = myListings.filter(l => !l.published);
 
@@ -122,6 +127,7 @@ export default function Profile() {
         >
           <Tab icon={<HomeIcon />} iconPosition="start" label={`My Listings (${myListings.length})`} />
           <Tab icon={<BookmarksIcon />} iconPosition="start" label={`Active Bookings (${activeBookings.length})`} />
+          <Tab icon={<HistoryIcon />} iconPosition="start" label={`History (${pastBookings.length})`} />
         </Tabs>
 
         <Box sx={{ p: 3 }}>
@@ -131,13 +137,25 @@ export default function Profile() {
                 Published Listings ({publishedListings.length})
               </Typography>
               {publishedListings.length > 0 ? (
-                <Grid container spacing={3}>
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: {
+                      xs: '1fr',
+                      sm: 'repeat(2, 1fr)',
+                      md: 'repeat(3, 1fr)',
+                      lg: 'repeat(4, 1fr)'
+                    },
+                    gap: 3,
+                    width: '100%'
+                  }}
+                >
                   {publishedListings.map(listing => (
-                    <Grid item xs={12} sm={6} md={4} key={listing.id}>
+                    <Box key={listing.id} sx={{ minWidth: 0 }}>
                       <ListingCard listing={listing} isHostView={false} />
-                    </Grid>
+                    </Box>
                   ))}
-                </Grid>
+                </Box>
               ) : (
                 <Typography color="text.secondary">No published listings yet.</Typography>
               )}
@@ -148,13 +166,25 @@ export default function Profile() {
                 Unpublished Listings ({unpublishedListings.length})
               </Typography>
               {unpublishedListings.length > 0 ? (
-                <Grid container spacing={3}>
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: {
+                      xs: '1fr',
+                      sm: 'repeat(2, 1fr)',
+                      md: 'repeat(3, 1fr)',
+                      lg: 'repeat(4, 1fr)'
+                    },
+                    gap: 3,
+                    width: '100%'
+                  }}
+                >
                   {unpublishedListings.map(listing => (
-                    <Grid item xs={12} sm={6} md={4} key={listing.id}>
+                    <Box key={listing.id} sx={{ minWidth: 0 }}>
                       <ListingCard listing={listing} isHostView={false} />
-                    </Grid>
+                    </Box>
                   ))}
-                </Grid>
+                </Box>
               ) : (
                 <Typography color="text.secondary">No unpublished listings.</Typography>
               )}
@@ -189,6 +219,38 @@ export default function Profile() {
             ) : (
               <Alert severity="info">
                 You don't have any active bookings.
+              </Alert>
+            )}
+          </TabPanel>
+
+          <TabPanel value={currentTab} index={2}>
+            <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
+              Past Bookings
+            </Typography>
+            {pastBookings.length > 0 ? (
+              <Grid container spacing={3}>
+                {pastBookings.map(booking => (
+                  <Grid item xs={12} key={booking.id}>
+                    <Paper sx={{ p: 3, borderRadius: 2, bgcolor: '#F9FAFB' }}>
+                      <Typography variant="h6" sx={{ color: '#6B7280' }}>
+                        {booking.listing?.title || 'Listing'}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {new Date(booking.dateRange.start).toLocaleDateString()} -
+                        {new Date(booking.dateRange.end).toLocaleDateString()}
+                      </Typography>
+                      {booking.totalPrice && (
+                        <Typography variant="body1" sx={{ mt: 2, color: '#6B7280', fontWeight: 500 }}>
+                          Total: ${booking.totalPrice.toFixed(2)}
+                        </Typography>
+                      )}
+                    </Paper>
+                  </Grid>
+                ))}
+              </Grid>
+            ) : (
+              <Alert severity="info">
+                No past bookings found.
               </Alert>
             )}
           </TabPanel>

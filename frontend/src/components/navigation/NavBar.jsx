@@ -1,15 +1,19 @@
 import { AppBar, Toolbar, Button, Box, Typography, Avatar, Menu, MenuItem, Divider } from '@mui/material';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import NotificationsPanel from '../common/NotificationsPanel';
-import HomeIcon from '@mui/icons-material/Home';
+import HomeWorkIcon from '@mui/icons-material/HomeWork';
 import PersonIcon from '@mui/icons-material/Person';
+import MenuIcon from '@mui/icons-material/Menu';
 
 export default function NavBar() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated, logout, userEmail } = useAuth();
   const [anchorEl, setAnchorEl] = useState(null);
+
+  const isActive = (path) => location.pathname === path;
 
   const handleLogout = async () => {
     try {
@@ -35,178 +39,194 @@ export default function NavBar() {
       elevation={0}
       sx={{
         bgcolor: 'white',
-        borderBottom: '1px solid rgba(0,0,0,0.08)',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-        transition: 'all 0.3s ease'
+        borderBottom: '1px solid #E5E7EB'
       }}
     >
-      <Toolbar sx={{ minHeight: { xs: 64, sm: 80 }, px: { xs: 2, sm: 4, md: 6 } }}>
+      <Toolbar sx={{ minHeight: 70, px: { xs: 2, sm: 4, md: 6 } }}>
         <Box
           sx={{
             display: 'flex',
             alignItems: 'center',
             cursor: 'pointer',
-            flexGrow: { xs: 1, md: 0 },
-            transition: 'all 0.3s ease',
-            '&:hover': {
-              transform: 'scale(1.02)'
-            }
+            mr: { xs: 'auto', md: 6 }
           }}
           onClick={() => navigate('/')}
         >
-          <HomeIcon sx={{ fontSize: 32, color: 'primary.main', mr: 1, transition: 'all 0.3s ease' }} />
+          <HomeWorkIcon sx={{ fontSize: 32, color: '#6366F1', mr: 1.5 }} />
           <Typography
-            variant="h5"
+            variant="h6"
             sx={{
               fontWeight: 700,
-              color: 'primary.main',
-              fontSize: { xs: '1.25rem', sm: '1.5rem' },
+              color: '#1F2937',
+              fontSize: '1.5rem',
               letterSpacing: '-0.5px'
             }}
           >
-            airbrb
+            AirBrB
           </Typography>
         </Box>
 
-        <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, justifyContent: 'center', gap: 1 }}>
+        <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 0.5, flex: 1, justifyContent: 'center' }}>
           <Button
             sx={{
-              color: '#222',
-              fontWeight: 500,
+              color: isActive('/') ? '#6366F1' : '#374151',
+              fontWeight: isActive('/') ? 600 : 500,
               textTransform: 'none',
               px: 2.5,
               py: 1,
-              borderRadius: 3,
-              transition: 'all 0.3s ease',
+              borderRadius: 2,
+              fontSize: '0.938rem',
+              bgcolor: isActive('/') ? '#EEF2FF' : 'transparent',
+              position: 'relative',
               '&:hover': {
-                bgcolor: '#f7f7f7',
-                transform: 'translateY(-1px)'
-              }
+                bgcolor: '#F3F4F6',
+                color: '#6366F1'
+              },
+              '&::after': isActive('/') ? {
+                content: '""',
+                position: 'absolute',
+                bottom: 0,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: '60%',
+                height: 2,
+                bgcolor: '#6366F1',
+                borderRadius: '2px 2px 0 0'
+              } : {}
             }}
             onClick={() => navigate('/')}
           >
             Explore
           </Button>
+          {isAuthenticated() && (
+            <Button
+              sx={{
+                color: isActive('/hosted') ? '#6366F1' : '#374151',
+                fontWeight: isActive('/hosted') ? 600 : 500,
+                textTransform: 'none',
+                px: 2.5,
+                py: 1,
+                borderRadius: 2,
+                fontSize: '0.938rem',
+                bgcolor: isActive('/hosted') ? '#EEF2FF' : 'transparent',
+                position: 'relative',
+                '&:hover': {
+                  bgcolor: '#F3F4F6',
+                  color: '#6366F1'
+                },
+                '&::after': isActive('/hosted') ? {
+                  content: '""',
+                  position: 'absolute',
+                  bottom: 0,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: '60%',
+                  height: 2,
+                  bgcolor: '#6366F1',
+                  borderRadius: '2px 2px 0 0'
+                } : {}
+              }}
+              onClick={() => navigate('/hosted')}
+            >
+              My Listings
+            </Button>
+          )}
         </Box>
 
-        <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', ml: 'auto' }}>
           {isAuthenticated() ? (
             <>
-              <Button
-                sx={{
-                  color: '#222',
-                  fontWeight: 500,
-                  textTransform: 'none',
-                  px: 2.5,
-                  py: 1,
-                  borderRadius: 3,
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    bgcolor: '#f7f7f7',
-                    transform: 'translateY(-1px)'
-                  },
-                  display: { xs: 'none', sm: 'inline-flex' }
-                }}
-                onClick={() => navigate('/hosted')}
-              >
-                Host
-              </Button>
               <NotificationsPanel />
-              <Box
+              <Button
+                onClick={handleMenuOpen}
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 1,
-                  border: '1px solid rgba(0,0,0,0.12)',
-                  borderRadius: 8,
-                  px: 1.5,
+                  gap: 1.5,
+                  border: '1px solid #E5E7EB',
+                  borderRadius: 50,
+                  pl: 1.5,
+                  pr: 0.5,
                   py: 0.5,
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                  minWidth: 'auto',
+                  textTransform: 'none',
                   '&:hover': {
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
-                    borderColor: 'rgba(0,0,0,0.18)',
-                    transform: 'translateY(-1px)'
+                    border: '1px solid #D1D5DB',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
                   }
                 }}
-                onClick={handleMenuOpen}
               >
+                <MenuIcon sx={{ fontSize: 18, color: '#6B7280' }} />
                 <Avatar
                   sx={{
-                    width: 32,
-                    height: 32,
-                    bgcolor: 'primary.main',
-                    background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
+                    width: 36,
+                    height: 36,
+                    bgcolor: '#6366F1',
                     fontSize: '0.875rem',
                     fontWeight: 600
                   }}
                 >
                   {userEmail?.charAt(0).toUpperCase()}
                 </Avatar>
-              </Box>
+              </Button>
               <Menu
                 anchorEl={anchorEl}
                 open={Boolean(anchorEl)}
                 onClose={handleMenuClose}
                 PaperProps={{
                   sx: {
-                    mt: 1.5,
-                    minWidth: 220,
-                    borderRadius: 2.5,
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-                    border: '1px solid rgba(0,0,0,0.05)'
+                    mt: 1,
+                    minWidth: 200,
+                    borderRadius: 2,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                    border: '1px solid #E5E7EB'
                   }
                 }}
-                TransitionProps={{
-                  timeout: 300
-                }}
               >
-                <Box sx={{ px: 2.5, py: 2 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 600, color: '#222', fontSize: '0.9rem' }}>
+                <Box sx={{ px: 2, py: 1.5, borderBottom: '1px solid #F3F4F6' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: '#111827', fontSize: '0.875rem' }}>
                     {userEmail}
                   </Typography>
                 </Box>
-                <Divider sx={{ my: 0.5 }} />
                 <MenuItem
                   onClick={() => { navigate('/profile'); handleMenuClose(); }}
                   sx={{
-                    py: 1.5,
-                    px: 2.5,
+                    py: 1.25,
+                    px: 2,
                     fontSize: '0.875rem',
-                    transition: 'all 0.3s ease',
+                    color: '#374151',
                     '&:hover': {
-                      bgcolor: '#f7f7f7'
+                      bgcolor: '#F9FAFB'
                     }
                   }}
                 >
-                  <PersonIcon sx={{ mr: 1.5, fontSize: '1.1rem', color: 'text.secondary' }} />
+                  <PersonIcon sx={{ mr: 1.5, fontSize: '1.1rem', color: '#6B7280' }} />
                   Profile
                 </MenuItem>
                 <MenuItem
                   onClick={() => { navigate('/hosted'); handleMenuClose(); }}
                   sx={{
-                    py: 1.5,
-                    px: 2.5,
+                    py: 1.25,
+                    px: 2,
                     fontSize: '0.875rem',
-                    transition: 'all 0.3s ease',
+                    color: '#374151',
                     '&:hover': {
-                      bgcolor: '#f7f7f7'
+                      bgcolor: '#F9FAFB'
                     }
                   }}
                 >
                   My Listings
                 </MenuItem>
+                <Divider sx={{ my: 0.5 }} />
                 <MenuItem
                   onClick={handleLogout}
                   sx={{
-                    py: 1.5,
-                    px: 2.5,
+                    py: 1.25,
+                    px: 2,
                     fontSize: '0.875rem',
-                    color: 'error.main',
-                    transition: 'all 0.3s ease',
+                    color: '#DC2626',
                     '&:hover': {
-                      bgcolor: 'rgba(193, 53, 21, 0.08)'
+                      bgcolor: '#FEF2F2'
                     }
                   }}
                 >
@@ -218,16 +238,15 @@ export default function NavBar() {
             <>
               <Button
                 sx={{
-                  color: '#222',
-                  fontWeight: 600,
+                  color: '#374151',
+                  fontWeight: 500,
                   textTransform: 'none',
                   px: 2.5,
                   py: 1,
-                  borderRadius: 3,
-                  transition: 'all 0.3s ease',
+                  borderRadius: 2,
+                  fontSize: '0.938rem',
                   '&:hover': {
-                    bgcolor: '#f7f7f7',
-                    transform: 'translateY(-1px)'
+                    bgcolor: '#F3F4F6'
                   }
                 }}
                 onClick={() => navigate('/login')}
@@ -236,18 +255,18 @@ export default function NavBar() {
               </Button>
               <Button
                 variant="contained"
-                color="primary"
                 sx={{
-                  fontWeight: 600,
+                  fontWeight: 500,
                   textTransform: 'none',
-                  px: 3,
+                  px: 2.5,
                   py: 1,
-                  borderRadius: 3,
-                  boxShadow: '0 2px 8px rgba(99, 102, 241, 0.25)',
-                  transition: 'all 0.3s ease',
+                  borderRadius: 2,
+                  fontSize: '0.938rem',
+                  bgcolor: '#6366F1',
+                  boxShadow: 'none',
                   '&:hover': {
-                    boxShadow: '0 4px 16px rgba(99, 102, 241, 0.35)',
-                    transform: 'translateY(-2px)'
+                    bgcolor: '#4F46E5',
+                    boxShadow: 'none'
                   }
                 }}
                 onClick={() => navigate('/register')}

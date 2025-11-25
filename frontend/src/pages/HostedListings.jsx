@@ -220,51 +220,73 @@ export default function HostedListings() {
       ) : listings.length === 0 ? (
         <Typography>You don&apos;t have any listings yet. Create one to get started!</Typography>
       ) : (
-        <Grid container spacing={{ xs: 2, sm: 3 }}>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: {
+              xs: '1fr',
+              sm: 'repeat(2, 1fr)',
+              md: 'repeat(3, 1fr)',
+              lg: 'repeat(4, 1fr)'
+            },
+            gap: { xs: 2, sm: 3 },
+            width: '100%'
+          }}
+        >
           {listings.map((listing) => (
-            <Grid item xs={12} sm={6} md={4} key={listing.id}>
-              <Box>
-                <ListingCard
-                  listing={listing}
-                  onDelete={handleDelete}
-                  isHostView={true}
-                  published={listing.published}
-                />
-                <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  {listing.published ? (
-                    <>
-                      <Button
-                        fullWidth
-                        variant="text"
-                        startIcon={<ManageSearchIcon />}
-                        onClick={() => navigate(`/listings/${listing.id}/bookings`)}
-                      >
-                        Manage Bookings
-                      </Button>
-                      <Button
-                        fullWidth
-                        variant="outlined"
-                        color="warning"
-                        onClick={() => handleUnpublishClick(listing)}
-                        sx={{ fontSize: '0.875rem' }}
-                      >
-                        Unpublish
-                      </Button>
-                    </>
-                  ) : (
-                    <Button
-                      fullWidth
-                      variant="contained"
-                      onClick={() => handlePublishClick(listing)}
-                    >
-                      Publish Listing
-                    </Button>
-                  )}
-                </Box>
+            <Box key={listing.id} sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+              <ListingCard
+                listing={listing}
+                onDelete={handleDelete}
+                isHostView={true}
+                published={listing.published}
+              />
+              <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Button
+                  fullWidth
+                  variant="text"
+                  startIcon={<ManageSearchIcon />}
+                  onClick={() => navigate(`/listings/${listing.id}/bookings`)}
+                  sx={{
+                    py: 1,
+                    fontSize: '0.875rem',
+                    fontWeight: 500
+                  }}
+                >
+                  Manage Bookings
+                </Button>
+                {listing.published ? (
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    color="warning"
+                    onClick={() => handleUnpublishClick(listing)}
+                    sx={{
+                      py: 1,
+                      fontSize: '0.875rem',
+                      fontWeight: 500
+                    }}
+                  >
+                    Unpublish
+                  </Button>
+                ) : (
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    onClick={() => handlePublishClick(listing)}
+                    sx={{
+                      py: 1,
+                      fontSize: '0.875rem',
+                      fontWeight: 500
+                    }}
+                  >
+                    Publish Listing
+                  </Button>
+                )}
               </Box>
-            </Grid>
+            </Box>
           ))}
-        </Grid>
+        </Box>
       )}
 
       {/* Unpublish Confirmation Dialog */}

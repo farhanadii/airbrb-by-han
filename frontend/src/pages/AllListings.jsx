@@ -200,13 +200,25 @@ export default function AllListings() {
           </Typography>
         </Box>
       ) : (
-        <Grid container spacing={{ xs: 2, sm: 3 }}>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: {
+              xs: '1fr',
+              sm: 'repeat(2, 1fr)',
+              md: 'repeat(3, 1fr)',
+              lg: 'repeat(4, 1fr)'
+            },
+            gap: { xs: 2, sm: 3 },
+            width: '100%'
+          }}
+        >
           {filteredListings.map((listing) => (
-            <Grid item xs={12} sm={6} md={4} key={listing.id}>
+            <Box key={listing.id} sx={{ minWidth: 0 }}>
               <ListingCard listing={listing} isHostView={false} />
-            </Grid>
+            </Box>
           ))}
-        </Grid>
+        </Box>
       )}
     </Container>
   );

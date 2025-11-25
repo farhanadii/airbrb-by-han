@@ -38,8 +38,8 @@ export default function ListingCard({ listing, onDelete, isHostView = false, pub
       elevation={0}
       sx={{
         cursor: 'pointer',
-        height: '100%',
-        maxHeight: 450,
+        width: '100%',
+        height: 420,
         display: 'flex',
         flexDirection: 'column',
         bgcolor: 'white',
@@ -59,8 +59,9 @@ export default function ListingCard({ listing, onDelete, isHostView = false, pub
         sx={{
           position: 'relative',
           overflow: 'hidden',
-          height: 280,
-          minHeight: 280,
+          height: 260,
+          minHeight: 260,
+          maxHeight: 260,
           flexShrink: 0,
           '&::after': {
             content: '""',
@@ -176,7 +177,7 @@ export default function ListingCard({ listing, onDelete, isHostView = false, pub
           </>
         )}
       </Box>
-      <CardContent sx={{ flexGrow: 1, p: 2, '&:last-child': { pb: 2 } }}>
+      <CardContent sx={{ height: 160, p: 2, '&:last-child': { pb: 2 }, display: 'flex', flexDirection: 'column' }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 0.5 }}>
           <Typography
             variant="body1"

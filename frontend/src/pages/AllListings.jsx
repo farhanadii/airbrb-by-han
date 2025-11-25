@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Container, Grid, Typography, Box, Alert } from '@mui/material';
+import { Container, Typography, Box, Alert } from '@mui/material';
 import { getAllListings, getListing, getAllBookings } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import ListingCard from '../components/listings/ListingCard';

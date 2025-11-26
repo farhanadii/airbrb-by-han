@@ -28,9 +28,12 @@ if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) 
 let users = {};
 let listings = {};
 let bookings = {};
+let dataLoaded = false;
 
 // Load data from Redis or file
 const loadData = async () => {
+  if (dataLoaded) return;
+
   if (redis) {
     try {
       const data = await redis.get('airbrb-database');
@@ -39,9 +42,13 @@ const loadData = async () => {
         listings = data.listings || {};
         bookings = data.bookings || {};
         console.log('Data loaded from Redis');
+      } else {
+        console.log('No data in Redis, starting fresh');
       }
+      dataLoaded = true;
     } catch (error) {
       console.error('Failed to load from Redis:', error);
+      dataLoaded = true;
     }
   } else {
     try {
@@ -49,8 +56,10 @@ const loadData = async () => {
       users = data.users;
       listings = data.listings;
       bookings = data.bookings;
+      dataLoaded = true;
     } catch {
       console.log('WARNING: No database found, create a new one');
+      dataLoaded = true;
     }
   }
 };
@@ -84,7 +93,9 @@ export const reset = () => {
 };
 
 // Initialize data on startup
-loadData();
+if (!redis) {
+  loadData();
+}
 
 /***************************************************************
                        Helper Functions
@@ -94,7 +105,9 @@ const newListingId = (_) => generateId(Object.keys(listings));
 const newBookingId = (_) => generateId(Object.keys(bookings));
 
 export const resourceLock = (callback) =>
-  new Promise((resolve, reject) => {
+  new Promise(async (resolve, reject) => {
+    // Ensure data is loaded first (for serverless environments)
+    await loadData();
     lock.acquire('resourceLock', callback(resolve, reject));
   });
 

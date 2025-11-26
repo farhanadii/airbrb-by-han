@@ -260,12 +260,18 @@ app.get('/', (req, res) => res.redirect('/docs'));
 
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-const configData = JSON.parse(fs.readFileSync('../frontend/backend.config.json'));
-const port = 'BACKEND_PORT' in configData ? configData.BACKEND_PORT : 5033;
+// Only start server if not in Vercel (serverless) environment
+if (!process.env.VERCEL) {
+  const configData = JSON.parse(fs.readFileSync('../frontend/backend.config.json'));
+  const port = 'BACKEND_PORT' in configData ? configData.BACKEND_PORT : 5033;
 
-const server = app.listen(port, () => {
-  console.log(`Backend is now listening on port ${port}!`);
-  console.log(`For API docs, navigate to http://localhost:${port}`);
-});
+  const server = app.listen(port, () => {
+    console.log(`Backend is now listening on port ${port}!`);
+    console.log(`For API docs, navigate to http://localhost:${port}`);
+  });
 
-export default server;
+  export default server;
+} else {
+  // Export app for Vercel serverless
+  export default app;
+}

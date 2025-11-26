@@ -37,6 +37,51 @@ export default function BookingStats({ bookings, listings, onBookingUpdate }) {
       return sum + (booking.totalPrice || 0);
     }, 0);
 
+  // Get bookings by status for detail view
+  const getBookingsByStatus = (status) => {
+    const filteredBookings = status === 'all'
+      ? myBookings
+      : myBookings.filter(b => b.status === status);
+
+    return filteredBookings.map(booking => {
+      const listing = listings.find(l => String(l.id) === String(booking.listingId));
+      return {
+        ...booking,
+        listingTitle: listing?.title || 'Unknown Property'
+      };
+    });
+  };
+
+  const handleStatClick = (statType) => {
+    setSelectedStat(statType);
+    setDialogOpen(true);
+    setError('');
+  };
+
+  const handleAccept = async (bookingId) => {
+    try {
+      setError('');
+      await acceptBooking(bookingId);
+      if (onBookingUpdate) {
+        await onBookingUpdate();
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to accept booking');
+    }
+  };
+
+  const handleDecline = async (bookingId) => {
+    try {
+      setError('');
+      await declineBooking(bookingId);
+      if (onBookingUpdate) {
+        await onBookingUpdate();
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to decline booking');
+    }
+  };
+
   const stats = [
     {
       title: 'Total Requests',

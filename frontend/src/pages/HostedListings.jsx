@@ -302,7 +302,7 @@ export default function HostedListings() {
 
       {!loading && listings.length > 0 && (
         <>
-          <BookingStats bookings={bookings} listings={listings} />
+          <BookingStats bookings={bookings} listings={listings} onBookingUpdate={fetchMyListings} />
           <ProfitsGraph bookings={bookings} listings={listings} />
         </>
       )}

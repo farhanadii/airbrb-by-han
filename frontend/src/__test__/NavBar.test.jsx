@@ -72,7 +72,7 @@ describe('NavBar Component', () => {
 
     // User email appears in avatar (first letter T)
     expect(screen.getByText('T')).toBeInTheDocument();
-    expect(screen.getByText(/host/i)).toBeInTheDocument();
+    expect(screen.getByText(/my listings/i)).toBeInTheDocument();
   });
 
   it('navigates to home page when logo is clicked', () => {
@@ -110,7 +110,7 @@ describe('NavBar Component', () => {
     fireEvent.click(userAvatar);
 
     await waitFor(() => {
-      expect(screen.getByText(/my listings/i)).toBeInTheDocument();
+      expect(screen.getByText(/profile/i)).toBeInTheDocument();
       expect(screen.getByText(/logout/i)).toBeInTheDocument();
     });
   });
@@ -166,7 +166,7 @@ describe('NavBar Component', () => {
     expect(notificationIcon).toBeInTheDocument();
   });
 
-  it('navigates to hosted listings when Host button is clicked', () => {
+  it('navigates to hosted listings when My Listings button is clicked', () => {
     localStorage.setItem('token', 'mock-token');
     localStorage.setItem('userEmail', 'test@example.com');
 
@@ -180,8 +180,8 @@ describe('NavBar Component', () => {
       </BrowserRouter>
     );
 
-    const hostButton = screen.getByText(/host/i);
-    fireEvent.click(hostButton);
+    const myListingsButton = screen.getByText(/my listings/i);
+    fireEvent.click(myListingsButton);
 
     expect(mockNavigate).toHaveBeenCalledWith('/hosted');
   });

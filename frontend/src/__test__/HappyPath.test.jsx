@@ -55,15 +55,15 @@ describe('Happy Path - User Registration and Listing Creation', () => {
     // Step 4: After registration, user should be logged in and see their avatar
     await waitFor(() => {
       expect(screen.getByText('J')).toBeInTheDocument(); // Avatar with first letter
-      expect(screen.getByText(/host/i)).toBeInTheDocument();
+      expect(screen.getByText(/my listings/i)).toBeInTheDocument();
     });
 
     // Step 5: Navigate to hosted listings (create new listing)
-    const hostButton = screen.getByText(/host/i);
-    fireEvent.click(hostButton);
+    const myListingsButton = screen.getByRole('button', { name: /my listings/i });
+    fireEvent.click(myListingsButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/my listings/i)).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /my listings/i })).toBeInTheDocument();
     });
 
     // Step 6: Click create new listing button
@@ -93,7 +93,7 @@ describe('Happy Path - User Registration and Listing Creation', () => {
 
     // Step 9: Verify user is redirected back to hosted listings
     await waitFor(() => {
-      expect(screen.getByText(/my listings/i)).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /my listings/i })).toBeInTheDocument();
     });
 
     // Step 10: Logout

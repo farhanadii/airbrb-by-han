@@ -151,59 +151,112 @@ export default function BookingRequests() {
           <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>No booking
                         requests yet</Typography>
         ) : (
-          <List>
+          <List sx={{ p: 0 }}>
             {bookings.map((booking, index) => (
               <Box key={booking.id}>
-                <ListItem sx={{
-                  flexDirection: 'column', alignItems:
-                                        'flex-start', py: { xs: 1.5, sm: 2 }
-                }}>
-                  <Box sx={{
-                    width: '100%', display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent:
-                                            'space-between', gap: { xs: 1, sm: 0 }, mb: 1
-                  }}>
-                    <Box>
-                      <Typography variant="body1" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
-                        {new
-                        Date(booking.dateRange.start).toLocaleDateString()} - {new
-                        Date(booking.dateRange.end).toLocaleDateString()}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                                                Guest: {booking.owner}
-                      </Typography>
+                <Paper
+                  sx={{
+                    mb: 2,
+                    borderLeft: `4px solid ${
+                      booking.status === 'accepted' ? '#10b981' :
+                        booking.status === 'pending' ? '#f59e0b' : '#ef4444'
+                    }`,
+                    backgroundColor: booking.status === 'accepted' ? 'rgba(16, 185, 129, 0.05)' :
+                      booking.status === 'pending' ? 'rgba(245, 158, 11, 0.05)' : 'rgba(239, 68, 68, 0.05)',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                    overflow: 'hidden'
+                  }}
+                >
+                  {/* Clickable area - navigates to listing */}
+                  <Box
+                    onClick={() => navigate(`/listings/${id}`)}
+                    sx={{
+                      p: 2.5,
+                      cursor: 'pointer',
+                      transition: 'background-color 0.2s ease',
+                      '&:hover': {
+                        backgroundColor: booking.status === 'accepted' ? 'rgba(16, 185, 129, 0.1)' :
+                          booking.status === 'pending' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(239, 68, 68, 0.1)'
+                      }
+                    }}
+                  >
+                    <Box sx={{
+                      display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent:
+                                              'space-between', gap: { xs: 1, sm: 0 }, mb: 1.5
+                    }}>
+                      <Box>
+                        <Typography variant="body1" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' }, fontWeight: 600, mb: 0.5 }}>
+                          {new
+                          Date(booking.dateRange.start).toLocaleDateString()} - {new
+                          Date(booking.dateRange.end).toLocaleDateString()}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                          Guest: {booking.owner}
+                        </Typography>
+                        {booking.totalPrice && (
+                          <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' }, color: '#059669', fontWeight: 600, mt: 0.5 }}>
+                            Total: ${booking.totalPrice.toFixed(2)}
+                          </Typography>
+                        )}
+                      </Box>
+                      <Chip
+                        label={booking.status.toUpperCase()}
+                        color={booking.status === 'accepted' ? 'success' :
+                          booking.status === 'pending' ? 'warning' : 'error'}
+                        size="small"
+                        sx={{ height: 24 }}
+                      />
                     </Box>
-                    <Chip
-                      label={booking.status.toUpperCase()}
-                      color={booking.status === 'accepted' ? 'success' :
-                        booking.status === 'pending' ? 'warning' : 'default'}
-                      size="small"
-                    />
+
+                    {booking.status !== 'pending' && (
+                      <Typography variant="caption" sx={{ color: '#717171', display: 'block' }}>
+                        {booking.status === 'accepted' && 'You accepted this booking request'}
+                        {booking.status === 'declined' && 'You declined this booking request'}
+                      </Typography>
+                    )}
                   </Box>
 
+                  {/* Action buttons - not clickable for navigation */}
                   {booking.status === 'pending' && (
-                    <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1, mt: 1, width: { xs: '100%', sm: 'auto' } }}>
-                      <Button
-                        size="small"
-                        variant="contained"
-                        color="success"
-                        onClick={() => handleAccept(booking.id)}
-                        fullWidth={{ xs: true, sm: false }}
-                      >
-                                                Accept
-                      </Button>
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        color="error"
-                        onClick={() => handleDecline(booking.id)}
-                        fullWidth={{ xs: true, sm: false }}
-                      >
-                                                Decline
-                      </Button>
+                    <Box sx={{ p: 2.5, pt: 0 }}>
+                      <Typography variant="caption" sx={{ color: '#f59e0b', display: 'block', mb: 1.5, fontWeight: 500 }}>
+                        New booking request - Action required
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1.5 }}>
+                        <Button
+                          variant="contained"
+                          color="success"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAccept(booking.id);
+                          }}
+                          sx={{
+                            minWidth: 120,
+                            fontWeight: 600,
+                            py: 1
+                          }}
+                        >
+                          Accept Booking
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          color="error"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDecline(booking.id);
+                          }}
+                          sx={{
+                            minWidth: 120,
+                            fontWeight: 600,
+                            py: 1
+                          }}
+                        >
+                          Decline
+                        </Button>
+                      </Box>
                     </Box>
                   )}
-                </ListItem>
-                {index < bookings.length - 1 && <Divider />}
+                </Paper>
               </Box>
             ))}
           </List>

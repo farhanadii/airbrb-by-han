@@ -233,6 +233,137 @@ export default function BookingStats({ bookings, listings, onBookingUpdate }) {
           )}
         </Box>
       )}
+
+      {/* Booking Details Dialog */}
+      <Dialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.12)'
+          }
+        }}
+      >
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 2 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            {selectedStat === 'all' && 'All Booking Requests'}
+            {selectedStat === 'pending' && 'Pending Bookings'}
+            {selectedStat === 'accepted' && 'Accepted Bookings'}
+            {selectedStat === 'declined' && 'Declined Bookings'}
+          </Typography>
+          <IconButton onClick={() => setDialogOpen(false)} size="small">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          {error && (
+            <Box sx={{ mb: 2, p: 2, bgcolor: 'error.lighter', borderRadius: 1 }}>
+              <Typography variant="body2" color="error">
+                {error}
+              </Typography>
+            </Box>
+          )}
+          {selectedStat && (
+            <Box sx={{ pt: 0 }}>
+              {getBookingsByStatus(selectedStat).length === 0 ? (
+                <Typography variant="body2" color="text.secondary" sx={{ p: 2, textAlign: 'center' }}>
+                  No bookings found
+                </Typography>
+              ) : (
+                getBookingsByStatus(selectedStat).map((booking, index) => (
+                  <Paper
+                    key={booking.id}
+                    sx={{
+                      mb: 2,
+                      overflow: 'hidden',
+                      borderLeft: `4px solid ${
+                        booking.status === 'accepted' ? '#10b981' :
+                          booking.status === 'pending' ? '#f59e0b' : '#ef4444'
+                      }`,
+                      backgroundColor: booking.status === 'accepted' ? 'rgba(16, 185, 129, 0.05)' :
+                        booking.status === 'pending' ? 'rgba(245, 158, 11, 0.05)' : 'rgba(239, 68, 68, 0.05)'
+                    }}
+                  >
+                    {/* Clickable area to navigate to listing */}
+                    <Box
+                      onClick={() => navigate(`/listings/${booking.listingId}`)}
+                      sx={{
+                        p: 2,
+                        cursor: 'pointer',
+                        transition: 'background-color 0.2s ease',
+                        '&:hover': {
+                          backgroundColor: booking.status === 'accepted' ? 'rgba(16, 185, 129, 0.1)' :
+                            booking.status === 'pending' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(239, 68, 68, 0.1)'
+                        }
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#222' }}>
+                          {booking.listingTitle}
+                        </Typography>
+                        <Chip
+                          label={booking.status.toUpperCase()}
+                          size="small"
+                          color={
+                            booking.status === 'pending' ? 'warning' :
+                              booking.status === 'accepted' ? 'success' : 'error'
+                          }
+                        />
+                      </Box>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                        <Typography variant="body2" color="text.secondary">
+                          Guest: {booking.owner}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Dates: {new Date(booking.dateRange.start).toLocaleDateString()} - {new Date(booking.dateRange.end).toLocaleDateString()}
+                        </Typography>
+                        {booking.totalPrice && (
+                          <Typography variant="body2" sx={{ color: '#059669', fontWeight: 600 }}>
+                            Total: ${booking.totalPrice.toFixed(2)}
+                          </Typography>
+                        )}
+                      </Box>
+                    </Box>
+
+                    {/* Action buttons for pending bookings */}
+                    {booking.status === 'pending' && (
+                      <Box sx={{ p: 2, pt: 0, display: 'flex', gap: 1 }}>
+                        <Button
+                          size="small"
+                          variant="contained"
+                          color="success"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAccept(booking.id);
+                          }}
+                          sx={{ minWidth: 100, fontWeight: 600 }}
+                        >
+                          Accept
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          color="error"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDecline(booking.id);
+                          }}
+                          sx={{ minWidth: 100, fontWeight: 600 }}
+                        >
+                          Decline
+                        </Button>
+                      </Box>
+                    )}
+                  </Paper>
+                ))
+              )}
+            </Box>
+          )}
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 }

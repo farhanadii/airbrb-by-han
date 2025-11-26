@@ -2,11 +2,24 @@ import fs from 'fs';
 import jwt from 'jsonwebtoken';
 import AsyncLock from 'async-lock';
 import { InputError, AccessError } from './error';
+import { Redis } from '@upstash/redis';
 
 const lock = new AsyncLock();
 
 const JWT_SECRET = 'giraffegiraffebeetroot';
 const DATABASE_FILE = './database.json';
+
+// Initialize Redis client (will be null in local development)
+let redis = null;
+if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+  redis = new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN,
+  });
+  console.log('Using Upstash Redis for storage');
+} else {
+  console.log('Using local file storage');
+}
 
 /***************************************************************
                        State Management
@@ -16,24 +29,47 @@ let users = {};
 let listings = {};
 let bookings = {};
 
+// Load data from Redis or file
+const loadData = async () => {
+  if (redis) {
+    try {
+      const data = await redis.get('airbrb-database');
+      if (data) {
+        users = data.users || {};
+        listings = data.listings || {};
+        bookings = data.bookings || {};
+        console.log('Data loaded from Redis');
+      }
+    } catch (error) {
+      console.error('Failed to load from Redis:', error);
+    }
+  } else {
+    try {
+      const data = JSON.parse(fs.readFileSync(DATABASE_FILE));
+      users = data.users;
+      listings = data.listings;
+      bookings = data.bookings;
+    } catch {
+      console.log('WARNING: No database found, create a new one');
+    }
+  }
+};
+
+// Save data to Redis or file
 const update = (users, listings, bookings) =>
   new Promise((resolve, reject) => {
-    lock.acquire('saveData', () => {
+    lock.acquire('saveData', async () => {
       try {
-        fs.writeFileSync(
-          DATABASE_FILE,
-          JSON.stringify(
-            {
-              users,
-              listings,
-              bookings,
-            },
-            null,
-            2,
-          ),
-        );
+        if (redis) {
+          await redis.set('airbrb-database', { users, listings, bookings });
+        } else {
+          fs.writeFileSync(
+            DATABASE_FILE,
+            JSON.stringify({ users, listings, bookings }, null, 2),
+          );
+        }
         resolve();
-      } catch {
+      } catch (error) {
         reject(new Error('Writing to database failed'));
       }
     });
@@ -47,15 +83,8 @@ export const reset = () => {
   bookings = {};
 };
 
-try {
-  const data = JSON.parse(fs.readFileSync(DATABASE_FILE));
-  users = data.users;
-  listings = data.listings;
-  bookings = data.bookings;
-} catch {
-  console.log('WARNING: No database found, create a new one');
-  save();
-}
+// Initialize data on startup
+loadData();
 
 /***************************************************************
                        Helper Functions

@@ -152,7 +152,13 @@ export default function EditListing() {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        handleChange('thumbnail', reader.result);
+        const imageData = reader.result;
+        // Add to images array if not already there
+        if (!formData.images.includes(imageData)) {
+          handleChange('images', [imageData, ...formData.images]);
+        }
+        // Set as thumbnail
+        handleChange('thumbnail', imageData);
         handleChange('youtubeUrl', '');
       };
       reader.readAsDataURL(file);
@@ -319,16 +325,22 @@ export default function EditListing() {
           {thumbnailTab === 0 ? (
             <>
               <Button variant="outlined" component="label" fullWidth sx={{
-                mt: 2
+                mt: 2, py: 1.5
               }}>
                                 Update Thumbnail Image
                 <input type="file" hidden accept="image/*"
                   onChange={handleThumbnailUpload} />
               </Button>
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                This image will be used as the main thumbnail and automatically added to the gallery
+              </Typography>
               {formData.thumbnail && !formData.youtubeUrl && (
-                <Box sx={{ mt: 2 }}>
+                <Box sx={{ mt: 2, p: 2, border: '2px solid', borderColor: 'primary.main', borderRadius: 2 }}>
+                  <Typography variant="subtitle2" sx={{ mb: 1, color: 'primary.main', fontWeight: 600 }}>
+                    Current Thumbnail
+                  </Typography>
                   <img src={formData.thumbnail} alt="Thumbnail" style={{
-                    maxWidth: '100%', maxHeight: '150px'
+                    maxWidth: '100%', maxHeight: '200px', borderRadius: '8px'
                   }} />
                 </Box>
               )}

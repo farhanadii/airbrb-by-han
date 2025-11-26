@@ -1,15 +1,18 @@
 import { useState, useEffect } from 'react';
-import { Container, Grid, Typography, Button, Box, Alert, Chip, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Snackbar } from '@mui/material';
+import { Container, Typography, Button, Box, Alert, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Snackbar } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import ManageSearchIcon from '@mui/icons-material/ManageSearch';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import PublishIcon from '@mui/icons-material/Publish';
+import UnpublishedIcon from '@mui/icons-material/Unpublished';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getAllListings, getListing, deleteListing, publishListing, unpublishListing, getAllBookings, createListing } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import ListingCard from '../components/listings/ListingCard';
 import ProfitsGraph from '../components/listings/ProfitsGraph';
+import BookingStats from '../components/listings/BookingStats';
 
 export default function HostedListings() {
   const [listings, setListings] = useState([]);
@@ -18,6 +21,7 @@ export default function HostedListings() {
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(true);
   const [unpublishDialogOpen, setUnpublishDialogOpen] = useState(false);
+  const [unpublishAllDialogOpen, setUnpublishAllDialogOpen] = useState(false);
   const [listingToUnpublish, setListingToUnpublish] = useState(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -124,6 +128,69 @@ export default function HostedListings() {
     setListingToUnpublish(null);
   };
 
+  const handlePublishAll = async () => {
+    try {
+      setError('');
+      setSuccess('');
+
+      const unpublishedListings = listings.filter(l => !l.published && l.metadata?.availabilityStart && l.metadata?.availabilityEnd);
+      const listingsWithoutDates = listings.filter(l => !l.published && (!l.metadata?.availabilityStart || !l.metadata?.availabilityEnd));
+
+      if (listingsWithoutDates.length > 0) {
+        setError(`${listingsWithoutDates.length} listing(s) cannot be published because they lack availability dates. Please edit them first.`);
+      }
+
+      if (unpublishedListings.length === 0) {
+        setError('No unpublished listings to publish');
+        return;
+      }
+
+      await Promise.all(unpublishedListings.map(listing =>
+        publishListing(listing.id, [{ start: listing.metadata.availabilityStart, end: listing.metadata.availabilityEnd }])
+      ));
+
+      await fetchMyListings();
+      setSnackbarMessage(`Successfully published ${unpublishedListings.length} listing${unpublishedListings.length !== 1 ? 's' : ''}!`);
+      setSnackbarOpen(true);
+    } catch (err) {
+      setError(err.message || 'Failed to publish all listings');
+    }
+  };
+
+  const handleUnpublishAllClick = () => {
+    const publishedListings = listings.filter(l => l.published);
+
+    if (publishedListings.length === 0) {
+      setError('No published listings to unpublish');
+      return;
+    }
+
+    setUnpublishAllDialogOpen(true);
+  };
+
+  const handleUnpublishAllConfirm = async () => {
+    try {
+      setError('');
+      setSuccess('');
+
+      const publishedListings = listings.filter(l => l.published);
+
+      await Promise.all(publishedListings.map(listing => unpublishListing(listing.id)));
+
+      await fetchMyListings();
+      setUnpublishAllDialogOpen(false);
+      setSnackbarMessage(`Successfully unpublished ${publishedListings.length} listing${publishedListings.length !== 1 ? 's' : ''}!`);
+      setSnackbarOpen(true);
+    } catch (err) {
+      setError(err.message || 'Failed to unpublish all listings');
+      setUnpublishAllDialogOpen(false);
+    }
+  };
+
+  const handleUnpublishAllCancel = () => {
+    setUnpublishAllDialogOpen(false);
+  };
+
   const handleJsonUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -197,6 +264,30 @@ export default function HostedListings() {
               onChange={handleJsonUpload}
             />
           </Button>
+          {listings.length > 0 && (
+            <>
+              <Button
+                variant="outlined"
+                color="success"
+                startIcon={<PublishIcon />}
+                onClick={handlePublishAll}
+                size="large"
+                disabled={!listings.some(l => !l.published)}
+              >
+                Publish All
+              </Button>
+              <Button
+                variant="outlined"
+                color="warning"
+                startIcon={<UnpublishedIcon />}
+                onClick={handleUnpublishAllClick}
+                size="large"
+                disabled={!listings.some(l => l.published)}
+              >
+                Unpublish All
+              </Button>
+            </>
+          )}
         </Box>
       </Box>
 
@@ -210,9 +301,10 @@ export default function HostedListings() {
       )}
 
       {!loading && listings.length > 0 && (
-        <Box sx={{ mb: 4 }}>
+        <>
+          <BookingStats bookings={bookings} listings={listings} />
           <ProfitsGraph bookings={bookings} listings={listings} />
-        </Box>
+        </>
       )}
 
       {loading ? (
@@ -346,6 +438,67 @@ export default function HostedListings() {
             }}
           >
             Unpublish
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Unpublish All Confirmation Dialog */}
+      <Dialog
+        open={unpublishAllDialogOpen}
+        onClose={handleUnpublishAllCancel}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.12)'
+          }
+        }}
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, pb: 1 }}>
+          <WarningAmberIcon sx={{ color: 'warning.main', fontSize: 28 }} />
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            Unpublish All Listings
+          </Typography>
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ mb: 2 }}>
+            Are you sure you want to unpublish <strong>all {listings.filter(l => l.published).length} published listing{listings.filter(l => l.published).length !== 1 ? 's' : ''}</strong>?
+          </DialogContentText>
+          <Alert severity="warning" sx={{ borderRadius: 2 }}>
+            <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
+              This will:
+            </Typography>
+            <Typography variant="body2" component="ul" sx={{ pl: 2, mb: 0 }}>
+              <li>Hide all published listings from guests</li>
+              <li>Prevent new bookings from being made</li>
+              <li>Keep all existing bookings intact</li>
+            </Typography>
+          </Alert>
+        </DialogContent>
+        <DialogActions sx={{ p: 3, pt: 2 }}>
+          <Button
+            onClick={handleUnpublishAllCancel}
+            sx={{
+              color: '#717171',
+              fontWeight: 500,
+              textTransform: 'none',
+              px: 3
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleUnpublishAllConfirm}
+            variant="contained"
+            color="warning"
+            sx={{
+              fontWeight: 600,
+              textTransform: 'none',
+              px: 3
+            }}
+          >
+            Unpublish All
           </Button>
         </DialogActions>
       </Dialog>

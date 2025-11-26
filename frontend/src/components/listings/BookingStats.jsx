@@ -88,42 +88,54 @@ export default function BookingStats({ bookings, listings, onBookingUpdate }) {
       value: totalRequests,
       icon: <EventAvailableIcon sx={{ fontSize: 40 }} />,
       color: '#6366f1',
-      bgColor: 'rgba(99, 102, 241, 0.1)'
+      bgColor: 'rgba(99, 102, 241, 0.1)',
+      type: 'all',
+      clickable: totalRequests > 0
     },
     {
       title: 'Pending',
       value: pendingCount,
       icon: <PendingActionsIcon sx={{ fontSize: 40 }} />,
       color: '#f59e0b',
-      bgColor: 'rgba(245, 158, 11, 0.1)'
+      bgColor: 'rgba(245, 158, 11, 0.1)',
+      type: 'pending',
+      clickable: pendingCount > 0
     },
     {
       title: 'Accepted',
       value: acceptedCount,
       icon: <CheckCircleIcon sx={{ fontSize: 40 }} />,
       color: '#10b981',
-      bgColor: 'rgba(16, 185, 129, 0.1)'
+      bgColor: 'rgba(16, 185, 129, 0.1)',
+      type: 'accepted',
+      clickable: acceptedCount > 0
     },
     {
       title: 'Declined',
       value: declinedCount,
       icon: <CancelIcon sx={{ fontSize: 40 }} />,
       color: '#ef4444',
-      bgColor: 'rgba(239, 68, 68, 0.1)'
+      bgColor: 'rgba(239, 68, 68, 0.1)',
+      type: 'declined',
+      clickable: declinedCount > 0
     },
     {
       title: 'Acceptance Rate',
       value: `${acceptanceRate}%`,
       icon: <TrendingUpIcon sx={{ fontSize: 40 }} />,
       color: '#8b5cf6',
-      bgColor: 'rgba(139, 92, 246, 0.1)'
+      bgColor: 'rgba(139, 92, 246, 0.1)',
+      type: null,
+      clickable: false
     },
     {
       title: 'Total Earnings',
       value: `$${totalEarnings.toFixed(2)}`,
       icon: <AttachMoneyIcon sx={{ fontSize: 40 }} />,
       color: '#059669',
-      bgColor: 'rgba(5, 150, 105, 0.1)'
+      bgColor: 'rgba(5, 150, 105, 0.1)',
+      type: 'accepted',
+      clickable: acceptedCount > 0
     }
   ];
 

@@ -148,14 +148,16 @@ export default function BookingStats({ bookings, listings, onBookingUpdate }) {
         {stats.map((stat, index) => (
           <Grid item xs={12} sm={6} md={4} lg={2} key={index}>
             <Card
+              onClick={() => stat.clickable && handleStatClick(stat.type)}
               sx={{
                 height: '100%',
                 borderRadius: 2.5,
                 boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
                 transition: 'all 0.3s ease',
+                cursor: stat.clickable ? 'pointer' : 'default',
                 '&:hover': {
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
-                  transform: 'translateY(-4px)'
+                  boxShadow: stat.clickable ? '0 4px 20px rgba(0,0,0,0.12)' : '0 2px 12px rgba(0,0,0,0.08)',
+                  transform: stat.clickable ? 'translateY(-4px)' : 'none'
                 }
               }}
             >

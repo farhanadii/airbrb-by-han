@@ -20,13 +20,14 @@ export default function ViewListing() {
   const navigate = useNavigate();
   const [listing, setListing] = useState(null);
   const [userBookings, setUserBookings] = useState([]);
+  const [allListingBookings, setAllListingBookings] = useState([]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(true);
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [loginPromptOpen, setLoginPromptOpen] = useState(false);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, userEmail } = useAuth();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -35,10 +36,16 @@ export default function ViewListing() {
         const data = await getListing(id);
         setListing(data.listing);
 
+        // Fetch all bookings for this listing to check availability
+        const bookingsData = await getAllBookings();
+        const listingBookings = bookingsData.bookings.filter(
+          b => b.listingId === id
+        );
+        setAllListingBookings(listingBookings);
+
         if (isAuthenticated()) {
-          const bookingsData = await getAllBookings();
-          const myBookingsForListing = bookingsData.bookings.filter(
-            b => b.listingId === id
+          const myBookingsForListing = listingBookings.filter(
+            b => b.owner === userEmail
           );
           setUserBookings(myBookingsForListing);
         }
@@ -301,12 +308,14 @@ export default function ViewListing() {
         pricePerNight={listing.price}
         discountSettings={{
           discountsEnabled: listing.metadata?.discountsEnabled || false,
+          customDiscounts: listing.metadata?.customDiscounts || [],
           discount3Nights: listing.metadata?.discount3Nights || 0,
           discount7Nights: listing.metadata?.discount7Nights || 0,
           discount14Nights: listing.metadata?.discount14Nights || 0
         }}
         availabilityStart={listing.metadata?.availabilityStart || ''}
         availabilityEnd={listing.metadata?.availabilityEnd || ''}
+        existingBookings={allListingBookings}
       />
 
       <ReviewModal

@@ -20,7 +20,6 @@ export default function Profile() {
   const { userEmail } = useAuth();
   const [currentTab, setCurrentTab] = useState(0);
   const [myListings, setMyListings] = useState([]);
-  const [myBookings, setMyBookings] = useState([]);
   const [bookingsWithDetails, setBookingsWithDetails] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -48,7 +47,6 @@ export default function Profile() {
 
         const bookingsData = await getAllBookings();
         const userBookings = bookingsData.bookings.filter(b => b.owner === userEmail);
-        setMyBookings(userBookings);
 
         const bookingsWithListingDetails = await Promise.all(
           userBookings.map(async (booking) => {
@@ -218,7 +216,7 @@ export default function Profile() {
               </Grid>
             ) : (
               <Alert severity="info">
-                You don't have any active bookings.
+                You don&apos;t have any active bookings.
               </Alert>
             )}
           </TabPanel>

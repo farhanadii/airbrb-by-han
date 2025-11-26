@@ -203,20 +203,6 @@ export default function NavBar() {
                   <PersonIcon sx={{ mr: 1.5, fontSize: '1.1rem', color: '#6B7280' }} />
                   Profile
                 </MenuItem>
-                <MenuItem
-                  onClick={() => { navigate('/hosted'); handleMenuClose(); }}
-                  sx={{
-                    py: 1.25,
-                    px: 2,
-                    fontSize: '0.875rem',
-                    color: '#374151',
-                    '&:hover': {
-                      bgcolor: '#F9FAFB'
-                    }
-                  }}
-                >
-                  My Listings
-                </MenuItem>
                 <Divider sx={{ my: 0.5 }} />
                 <MenuItem
                   onClick={handleLogout}

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Card, CardContent, Typography, Grid, Chip, Dialog, DialogTitle, DialogContent, IconButton, Divider, Button, Paper } from '@mui/material';
+import { Box, Card, CardContent, Typography, Grid, Chip, Dialog, DialogTitle, DialogContent, IconButton, Button, Paper } from '@mui/material';
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
@@ -273,7 +273,7 @@ export default function BookingStats({ bookings, listings, onBookingUpdate }) {
                   No bookings found
                 </Typography>
               ) : (
-                getBookingsByStatus(selectedStat).map((booking, index) => (
+                getBookingsByStatus(selectedStat).map((booking) => (
                   <Paper
                     key={booking.id}
                     sx={{

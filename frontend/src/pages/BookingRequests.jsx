@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Container, Typography, Box, Alert, Paper,
-  List, ListItem, Button, Chip, Divider
+  List, Button, Chip
 } from '@mui/material';
 import { getListing, getAllBookings, acceptBooking, declineBooking } from
   '../services/api';
@@ -152,7 +152,7 @@ export default function BookingRequests() {
                         requests yet</Typography>
         ) : (
           <List sx={{ p: 0 }}>
-            {bookings.map((booking, index) => (
+            {bookings.map((booking) => (
               <Box key={booking.id}>
                 <Paper
                   sx={{

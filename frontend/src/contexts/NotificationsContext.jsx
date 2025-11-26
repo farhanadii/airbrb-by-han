@@ -1,4 +1,4 @@
-import { createContext, useState, useContext, useEffect, useCallback } from 'react';
+import { createContext, useState, useContext, useEffect, useCallback, useRef } from 'react';
 import { getAllBookings, getAllListings } from '../services/api';
 import { useAuth } from './AuthContext';
 
@@ -14,8 +14,21 @@ export const useNotifications = () => {
 export const NotificationsProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [lastChecked, setLastChecked] = useState({});
+  const [lastChecked, setLastChecked] = useState(() => {
+    try {
+      const saved = localStorage.getItem('notificationsLastChecked');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+  const lastCheckedRef = useRef(lastChecked);
   const { isAuthenticated, userEmail } = useAuth();
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    lastCheckedRef.current = lastChecked;
+  }, [lastChecked]);
 
   const checkForNewNotifications = useCallback(async () => {
     if (!isAuthenticated()) return;
@@ -27,30 +40,53 @@ export const NotificationsProvider = ({ children }) => {
       ]);
 
       const myListings = listingsData.listings.filter(l => l.owner === userEmail);
-      const myListingIds = myListings.map(l => l.id);
+      const myListingIds = myListings.map(l => String(l.id)); // Convert to strings for comparison
       const newNotifications = [];
 
+      console.log('=== NOTIFICATION CHECK ===');
+      console.log('Current user:', userEmail);
+      console.log('My listings:', myListings);
+      console.log('My listing IDs:', myListingIds);
+      console.log('Total bookings:', bookingsData.bookings.length);
+
+      // Check each booking
       bookingsData.bookings.forEach(booking => {
         const bookingKey = `${booking.id}-${booking.status}`;
+        const isMyListing = myListingIds.includes(String(booking.listingId)); // Convert to string for comparison
+        const isPending = booking.status === 'pending';
+
+        console.log(`Booking ${booking.id}:`, {
+          listingId: booking.listingId,
+          status: booking.status,
+          owner: booking.owner,
+          isMyListing,
+          isPending,
+          alreadyChecked: !!lastCheckedRef.current[bookingKey]
+        });
 
         // Host notification: new booking request on their listing
-        if (myListingIds.includes(booking.listingId) && booking.status === 'pending') {
-          if (!lastChecked[bookingKey]) {
-            const listing = myListings.find(l => l.id === booking.listingId);
+        if (isMyListing && isPending) {
+          console.log('✓ This is a pending booking on MY listing!');
+          if (!lastCheckedRef.current[bookingKey]) {
+            const listing = myListings.find(l => String(l.id) === String(booking.listingId));
+            console.log('🔔 NEW NOTIFICATION - Creating notification for booking:', bookingKey);
+            console.log('Found listing:', listing);
             newNotifications.push({
               id: bookingKey,
               type: 'booking_request',
-              message: `New booking request for "${listing?.title}" from ${booking.owner}`,
+              message: `New booking request for "${listing?.title || 'your property'}" from ${booking.owner}`,
               bookingId: booking.id,
               listingId: booking.listingId,
               timestamp: new Date()
             });
+          } else {
+            console.log('Already notified about this booking:', bookingKey);
           }
         }
 
         // Guest notification: booking accepted or declined
         if (booking.owner === userEmail && (booking.status === 'accepted' || booking.status === 'declined')) {
-          if (!lastChecked[bookingKey]) {
+          if (!lastCheckedRef.current[bookingKey]) {
             newNotifications.push({
               id: bookingKey,
               type: booking.status === 'accepted' ? 'booking_accepted' : 'booking_declined',
@@ -63,20 +99,23 @@ export const NotificationsProvider = ({ children }) => {
         }
       });
 
+      console.log(`Found ${newNotifications.length} new notifications`);
       if (newNotifications.length > 0) {
+        console.log('New notifications:', newNotifications);
         setNotifications(prev => [...newNotifications, ...prev]);
         setUnreadCount(prev => prev + newNotifications.length);
 
-        const newLastChecked = { ...lastChecked };
+        const newLastChecked = { ...lastCheckedRef.current };
         newNotifications.forEach(notif => {
           newLastChecked[notif.id] = true;
         });
         setLastChecked(newLastChecked);
+        localStorage.setItem('notificationsLastChecked', JSON.stringify(newLastChecked));
       }
     } catch (err) {
       console.error('Failed to check notifications:', err);
     }
-  }, [isAuthenticated, userEmail, lastChecked]);
+  }, [isAuthenticated, userEmail]);
 
   useEffect(() => {
     if (!isAuthenticated()) return;
@@ -100,8 +139,11 @@ export const NotificationsProvider = ({ children }) => {
   };
 
   const clearNotifications = () => {
+    console.log('🗑️ Clearing all notifications and resetting tracking');
     setNotifications([]);
     setUnreadCount(0);
+    setLastChecked({});
+    localStorage.removeItem('notificationsLastChecked');
   };
 
   const value = {
@@ -111,6 +153,19 @@ export const NotificationsProvider = ({ children }) => {
     markAllAsRead,
     clearNotifications
   };
+
+  // Debug: Log current state
+  useEffect(() => {
+    console.log('📬 Notification state updated:', {
+      count: notifications.length,
+      unread: unreadCount,
+      notifications: notifications.map(n => ({
+        id: n.id,
+        type: n.type,
+        message: n.message
+      }))
+    });
+  }, [notifications, unreadCount]);
 
   return (
     <NotificationsContext.Provider value={value}>

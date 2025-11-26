@@ -1,12 +1,20 @@
-import { Box, Card, CardContent, Typography, Grid, Chip } from '@mui/material';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Box, Card, CardContent, Typography, Grid, Chip, Dialog, DialogTitle, DialogContent, IconButton, Divider, Button, Paper } from '@mui/material';
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import CloseIcon from '@mui/icons-material/Close';
+import { acceptBooking, declineBooking } from '../../services/api';
 
-export default function BookingStats({ bookings, listings }) {
+export default function BookingStats({ bookings, listings, onBookingUpdate }) {
+  const navigate = useNavigate();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedStat, setSelectedStat] = useState(null);
+  const [error, setError] = useState('');
   // Filter bookings for the host's listings
   const myListingIds = listings.map(l => String(l.id));
   const myBookings = bookings.filter(b => myListingIds.includes(String(b.listingId)));

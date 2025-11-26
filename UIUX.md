@@ -166,3 +166,69 @@
 - Reduced navigation required for common tasks
 - Better visual hierarchy and understanding of booking pipeline
 - Faster response to guest booking requests
+
+### 8. Notifications System
+
+**Improvements:**
+- **Live Updates**: Polls every 5 seconds for new bookings
+- **Badge Counter**: Number indicator on notification bell icon
+- **Notification Panel**: Slide-out panel with recent notifications
+- **Status Icons**: Visual indicators for accepted/pending/denied
+- **Timestamps**: Relative time display (e.g., "2 hours ago")
+- **Quick Actions**: Direct links to booking requests
+
+**User Benefits:**
+- Never miss a booking request
+- Stay informed in real-time
+- Quick access to important updates
+- Clear notification organization
+
+### 9. Booking Workflow
+
+**Improvements:**
+- **Date Range Picker**: Intuitive calendar interface
+- **Price Calculation**: Automatic total price calculation
+- **Availability Check**: Real-time availability validation
+- **Booking Confirmation**: Clear success/error feedback
+- **Request Status**: Color-coded status badges (green/yellow/red)
+- **Host Actions**: Accept/deny buttons with confirmation
+- **Guest Status Communication**: Contextual messages for each booking state
+- **Card-Based Booking Display**: Professional, organized booking cards
+- **Clickable Booking Navigation**: Direct access to property listings
+- **Transparent Workflow**: Clear communication of booking lifecycle
+
+**User Benefits:**
+- Simple booking process
+- Clear pricing transparency
+- No double-bookings
+- Quick confirmation
+- Reduced uncertainty about booking status
+- Better understanding of next steps
+- Enhanced communication between guests and hosts
+
+### 10. Visual Feedback
+
+**Improvements:**
+- **Loading States**: "Loading..." text for async operations
+- **Hover Effects**: Visual feedback on interactive elements
+- **Button States**: Disabled states for unavailable actions
+- **Transitions**: Smooth animations (0.2s)
+- **Success/Error Alerts**: Color-coded feedback messages
+- **Empty States**: Helpful messages when no data available
+
+**User Benefits:**
+- Clear system state understanding
+- Reduced uncertainty
+- Professional feel
+- Guided user actions
+
+## Accessibility Considerations
+
+While a full A11Y.md document covers accessibility, key UI/UX improvements include:
+
+- **Color Contrast**: Text meets WCAG contrast ratios
+- **Focus States**: Visible focus indicators
+- **Semantic HTML**: Proper heading hierarchy
+- **Alt Text**: Images have descriptive alt attributes
+- **Keyboard Navigation**: All actions accessible via keyboard
+- **Screen Reader Support**: Proper ARIA labels

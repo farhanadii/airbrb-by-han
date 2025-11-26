@@ -270,9 +270,40 @@ export default function CreateListing() {
 
           {thumbnailTab === 0 ? (
             <>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 2, mb: 1 }}>
-                The first image you upload in the gallery below will be used as the thumbnail
-              </Typography>
+              <Box sx={{ mt: 2 }}>
+                <Button
+                  variant="outlined"
+                  component="label"
+                  fullWidth
+                  sx={{ py: 1.5 }}
+                >
+                  Upload Thumbnail Image
+                  <input
+                    type="file"
+                    hidden
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          const imageData = reader.result;
+                          // Add to images array if not already there
+                          if (!formData.images.includes(imageData)) {
+                            handleChange('images', [imageData, ...formData.images]);
+                          }
+                          // Set as thumbnail
+                          handleChange('thumbnail', imageData);
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                  />
+                </Button>
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                  This image will be used as the main thumbnail and automatically added to the gallery
+                </Typography>
+              </Box>
               {formData.thumbnail && !formData.youtubeUrl && (
                 <Box sx={{ mt: 2, p: 2, border: '2px solid', borderColor: 'primary.main', borderRadius: 2 }}>
                   <Typography variant="subtitle2" sx={{ mb: 1, color: 'primary.main', fontWeight: 600 }}>

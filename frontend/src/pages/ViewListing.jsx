@@ -278,21 +278,42 @@ export default function ViewListing() {
             </Button>
 
             {userBookings.length > 0 && (
-              <Box sx={{ mt: 2 }}>
-                <Typography variant="subtitle2" gutterBottom sx={{ fontSize: { xs: '0.875rem', sm: '0.875rem' } }}>Your
-                                    Bookings:</Typography>
+              <Box sx={{ mt: 3 }}>
+                <Typography variant="subtitle2" gutterBottom sx={{ fontSize: { xs: '0.875rem', sm: '0.875rem' }, fontWeight: 600 }}>
+                  Your Bookings
+                </Typography>
                 {userBookings.map((booking, index) => (
-                  <Box key={index} sx={{ mb: 1 }}>
-                    <Chip
-                      label={`${booking.status.toUpperCase()}: ${new
-                      Date(booking.dateRange.start).toLocaleDateString()} - ${new
-                      Date(booking.dateRange.end).toLocaleDateString()}`}
-                      size="small"
-                      color={booking.status === 'accepted' ? 'success' :
-                        booking.status === 'pending' ? 'warning' : 'default'}
-                      sx={{ fontSize: '0.7rem' }}
-                    />
-                  </Box>
+                  <Paper
+                    key={index}
+                    sx={{
+                      p: 2,
+                      mb: 1.5,
+                      borderLeft: `4px solid ${
+                        booking.status === 'accepted' ? '#10b981' :
+                          booking.status === 'pending' ? '#f59e0b' : '#ef4444'
+                      }`,
+                      backgroundColor: booking.status === 'accepted' ? 'rgba(16, 185, 129, 0.05)' :
+                        booking.status === 'pending' ? 'rgba(245, 158, 11, 0.05)' : 'rgba(239, 68, 68, 0.05)'
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
+                        {new Date(booking.dateRange.start).toLocaleDateString()} - {new Date(booking.dateRange.end).toLocaleDateString()}
+                      </Typography>
+                      <Chip
+                        label={booking.status.toUpperCase()}
+                        size="small"
+                        color={booking.status === 'accepted' ? 'success' :
+                          booking.status === 'pending' ? 'warning' : 'error'}
+                        sx={{ fontSize: '0.7rem', height: 20 }}
+                      />
+                    </Box>
+                    <Typography variant="caption" sx={{ color: '#717171', display: 'block' }}>
+                      {booking.status === 'pending' && 'Waiting for owner confirmation'}
+                      {booking.status === 'accepted' && 'Your booking has been confirmed!'}
+                      {booking.status === 'declined' && 'This booking request was declined'}
+                    </Typography>
+                  </Paper>
                 ))}
               </Box>
             )}

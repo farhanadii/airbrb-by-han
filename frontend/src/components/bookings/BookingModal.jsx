@@ -5,7 +5,7 @@ import {
 } from '@mui/material';
 
 export default function BookingModal({ open, onClose, onBook, listingTitle,
-  pricePerNight, discountSettings = {}, availabilityStart = '', availabilityEnd = '' }) {
+  pricePerNight, discountSettings = {}, availabilityStart = '', availabilityEnd = '', existingBookings = [] }) {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [error, setError] = useState('');
@@ -19,6 +19,35 @@ export default function BookingModal({ open, onClose, onBook, listingTitle,
     return diffDays;
   };
 
+  // Check if date range overlaps with existing accepted/pending bookings
+  const checkDateOverlap = (start, end) => {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+
+    for (const booking of existingBookings) {
+      // Only check accepted and pending bookings
+      if (booking.status !== 'accepted' && booking.status !== 'pending') continue;
+
+      const bookingStart = new Date(booking.dateRange.start);
+      const bookingEnd = new Date(booking.dateRange.end);
+
+      // Check if dates overlap
+      if (startDate < bookingEnd && endDate > bookingStart) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  // Get today's date in YYYY-MM-DD format for comparison (using local timezone)
+  const getTodayString = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const handleBook = () => {
     setError('');
 
@@ -29,6 +58,29 @@ export default function BookingModal({ open, onClose, onBook, listingTitle,
 
     if (new Date(startDate) >= new Date(endDate)) {
       setError('Check-out date must be after check-in date');
+      return;
+    }
+
+    // Check if start date is in the past
+    if (startDate < getTodayString()) {
+      setError('Check-in date cannot be in the past');
+      return;
+    }
+
+    // Check if dates are within availability range
+    if (availabilityStart && startDate < availabilityStart) {
+      setError(`This property is only available from ${new Date(availabilityStart).toLocaleDateString()}`);
+      return;
+    }
+
+    if (availabilityEnd && endDate > availabilityEnd) {
+      setError(`This property is only available until ${new Date(availabilityEnd).toLocaleDateString()}`);
+      return;
+    }
+
+    // Check if dates overlap with existing bookings
+    if (checkDateOverlap(startDate, endDate)) {
+      setError('These dates are not available. Please choose different dates.');
       return;
     }
 
@@ -45,20 +97,59 @@ export default function BookingModal({ open, onClose, onBook, listingTitle,
 
   const nights = calculateNights();
 
-  // Multi-night discount calculation using listing's discount settings
+  // Multi-night discount calculation using listing's custom discount tiers
   const calculateDiscount = (numNights) => {
-    // Only apply discounts if the host has enabled them
-    if (!discountSettings.discountsEnabled) return 0;
+    console.log('=== DISCOUNT CALCULATION ===');
+    console.log('numNights:', numNights);
+    console.log('discountSettings:', discountSettings);
 
-    if (numNights >= 14 && discountSettings.discount14Nights) {
-      return discountSettings.discount14Nights / 100;
+    // Only apply discounts if the host has explicitly enabled them
+    if (!discountSettings || discountSettings.discountsEnabled === false) {
+      console.log('Discounts NOT enabled - returning 0');
+      return 0;
     }
-    if (numNights >= 7 && discountSettings.discount7Nights) {
-      return discountSettings.discount7Nights / 100;
+
+    // Check if there are any valid custom discount tiers
+    const hasValidCustomDiscounts = discountSettings.customDiscounts &&
+      discountSettings.customDiscounts.length > 0 &&
+      discountSettings.customDiscounts.some(tier =>
+        tier.minNights > 0 && tier.discount > 0
+      );
+
+    // If discountsEnabled is true but no valid custom discounts, return 0
+    if (!hasValidCustomDiscounts && discountSettings.discountsEnabled === true) {
+      console.log('Discounts enabled but no valid custom discounts - returning 0');
+      return 0;
     }
-    if (numNights >= 3 && discountSettings.discount3Nights) {
-      return discountSettings.discount3Nights / 100;
+
+    // If using new custom discount tiers
+    if (hasValidCustomDiscounts) {
+      console.log('Using custom discount tiers');
+      // Find the best matching tier (highest discount that applies)
+      let bestDiscount = 0;
+
+      for (const tier of discountSettings.customDiscounts) {
+        // Skip invalid tiers - check for valid numbers
+        if (!tier.minNights || tier.minNights <= 0 || !tier.discount || tier.discount <= 0) {
+          console.log('Skipping invalid tier:', tier);
+          continue;
+        }
+
+        const meetsMin = numNights >= tier.minNights;
+        const meetsMax = tier.maxNights === null || tier.maxNights === '' || numNights <= tier.maxNights;
+
+        console.log(`Tier check:`, { tier, meetsMin, meetsMax });
+
+        if (meetsMin && meetsMax && tier.discount > bestDiscount) {
+          bestDiscount = tier.discount;
+        }
+      }
+
+      console.log('Best discount found:', bestDiscount);
+      return bestDiscount / 100;
     }
+
+    console.log('No discounts applied - returning 0');
     return 0;
   };
 
@@ -113,10 +204,9 @@ export default function BookingModal({ open, onClose, onBook, listingTitle,
           onChange={(e) => setStartDate(e.target.value)}
           InputLabelProps={{ shrink: true }}
           inputProps={{
-            min: availabilityStart || undefined,
+            min: availabilityStart && availabilityStart > getTodayString() ? availabilityStart : getTodayString(),
             max: availabilityEnd || undefined
           }}
-          helperText={availabilityStart && availabilityEnd ? `Available: ${new Date(availabilityStart).toLocaleDateString()} - ${new Date(availabilityEnd).toLocaleDateString()}` : ''}
           sx={{
             mt: 2,
             mb: 2,
@@ -141,9 +231,10 @@ export default function BookingModal({ open, onClose, onBook, listingTitle,
           onChange={(e) => setEndDate(e.target.value)}
           InputLabelProps={{ shrink: true }}
           inputProps={{
-            min: startDate || availabilityStart || undefined,
+            min: startDate || (availabilityStart && availabilityStart > getTodayString() ? availabilityStart : getTodayString()),
             max: availabilityEnd || undefined
           }}
+          helperText="Booked dates will be validated on confirmation"
           sx={{
             mb: 2,
             '& .MuiOutlinedInput-root': {

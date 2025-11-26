@@ -1,7 +1,9 @@
-import { Box, TextField, IconButton, Typography, Paper } from
+import { Box, TextField, IconButton, Typography, Paper, MenuItem, Select, FormControl, InputLabel } from
   '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
+
+const BED_TYPES = ['Single', 'Double', 'Queen', 'King', 'Twin', 'Full', 'Bunk'];
 
 export default function BedroomInput({ bedrooms, onChange }) {
   const addBedroom = () => {
@@ -46,14 +48,18 @@ export default function BedroomInput({ bedrooms, onChange }) {
               inputProps={{ min: 1 }}
               sx={{ flex: 1 }}
             />
-            <TextField
-              label="Bed Type"
-              size="small"
-              value={bedroom.type}
-              onChange={(e) => updateBedroom(index, 'type', e.target.value)}
-              placeholder="e.g. Single, Double, Queen"
-              sx={{ flex: 1 }}
-            />
+            <FormControl size="small" sx={{ flex: 1 }}>
+              <InputLabel>Bed Type</InputLabel>
+              <Select
+                value={bedroom.type}
+                onChange={(e) => updateBedroom(index, 'type', e.target.value)}
+                label="Bed Type"
+              >
+                {BED_TYPES.map(type => (
+                  <MenuItem key={type} value={type}>{type}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
             <IconButton color="error" onClick={() => removeBedroom(index)}
               size="small">
               <DeleteIcon />

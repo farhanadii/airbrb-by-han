@@ -262,17 +262,18 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Only start server if not in Vercel (serverless) environment
 if (!process.env.VERCEL) {
+  let port = 5033;
   try {
     const configData = JSON.parse(fs.readFileSync('../frontend/backend.config.json'));
-    const port = 'BACKEND_PORT' in configData ? configData.BACKEND_PORT : 5033;
-
-    app.listen(port, () => {
-      console.log(`Backend is now listening on port ${port}!`);
-      console.log(`For API docs, navigate to http://localhost:${port}`);
-    });
+    port = 'BACKEND_PORT' in configData ? configData.BACKEND_PORT : 5033;
   } catch (error) {
-    console.log('Running in serverless mode');
+    console.log('backend.config.json not found, using default port 5033');
   }
+
+  app.listen(port, () => {
+    console.log(`Backend is now listening on port ${port}!`);
+    console.log(`For API docs, navigate to http://localhost:${port}`);
+  });
 }
 
 // Always export app for Vercel

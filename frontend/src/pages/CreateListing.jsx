@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import {
   Container, TextField, Button, Typography, Box, Alert,
   FormControl, Chip, Tabs, Tab,
-  IconButton, Grid, Switch, FormControlLabel, Checkbox, FormGroup
+  IconButton, Grid, Checkbox, FormGroup, FormControlLabel
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
 import { createListing, publishListing } from '../services/api';
 import BedroomInput from '../components/listings/BedroomInput';
 
@@ -31,14 +32,78 @@ export default function CreateListing() {
     images: [],
     availabilityStart: '',
     availabilityEnd: '',
-    discountsEnabled: false,
-    discount3Nights: '',
-    discount7Nights: '',
-    discount14Nights: ''
+    customDiscounts: []
   });
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const addDiscountTier = () => {
+    const newTier = {
+      minNights: '',
+      maxNights: '',
+      discount: ''
+    };
+    let newDiscounts = [...formData.customDiscounts, newTier];
+
+    // Auto-update max nights for all tiers except the last one
+    newDiscounts = newDiscounts.map((tier, i) => {
+      if (i < newDiscounts.length - 1) {
+        const nextMin = parseInt(newDiscounts[i + 1].minNights);
+        if (nextMin && nextMin > 0) {
+          return { ...tier, maxNights: (nextMin - 1).toString() };
+        }
+      } else {
+        return { ...tier, maxNights: '' };
+      }
+      return tier;
+    });
+
+    handleChange('customDiscounts', newDiscounts);
+  };
+
+  const removeDiscountTier = (index) => {
+    let newDiscounts = formData.customDiscounts.filter((_, i) => i !== index);
+
+    // Auto-update max nights for all tiers except the last one
+    newDiscounts = newDiscounts.map((tier, i) => {
+      if (i < newDiscounts.length - 1) {
+        const nextMin = parseInt(newDiscounts[i + 1].minNights);
+        if (nextMin && nextMin > 0) {
+          return { ...tier, maxNights: (nextMin - 1).toString() };
+        }
+      } else {
+        return { ...tier, maxNights: '' };
+      }
+      return tier;
+    });
+
+    handleChange('customDiscounts', newDiscounts);
+  };
+
+  const updateDiscountTier = (index, field, value) => {
+    let newDiscounts = formData.customDiscounts.map((tier, i) =>
+      i === index ? { ...tier, [field]: value } : tier
+    );
+
+    // Auto-update max nights for all tiers except the last one
+    // Each tier's max = next tier's min - 1 (if next tier exists)
+    newDiscounts = newDiscounts.map((tier, i) => {
+      if (i < newDiscounts.length - 1) {
+        // Not the last tier - set max to next tier's min - 1
+        const nextMin = parseInt(newDiscounts[i + 1].minNights);
+        if (nextMin && nextMin > 0) {
+          return { ...tier, maxNights: (nextMin - 1).toString() };
+        }
+      } else {
+        // Last tier - always no max limit
+        return { ...tier, maxNights: '' };
+      }
+      return tier;
+    });
+
+    handleChange('customDiscounts', newDiscounts);
   };
 
   const handleImageUpload = (e) => {
@@ -127,10 +192,16 @@ export default function CreateListing() {
           images: formData.images,
           availabilityStart: formData.availabilityStart,
           availabilityEnd: formData.availabilityEnd,
-          discountsEnabled: formData.discountsEnabled,
-          discount3Nights: formData.discountsEnabled ? parseFloat(formData.discount3Nights) || 0 : 0,
-          discount7Nights: formData.discountsEnabled ? parseFloat(formData.discount7Nights) || 0 : 0,
-          discount14Nights: formData.discountsEnabled ? parseFloat(formData.discount14Nights) || 0 : 0
+          discountsEnabled: formData.customDiscounts.length > 0 && formData.customDiscounts.some(tier =>
+            tier.minNights && parseInt(tier.minNights) > 0 && tier.discount && parseFloat(tier.discount) > 0
+          ),
+          customDiscounts: formData.customDiscounts
+            .filter(tier => tier.minNights && parseInt(tier.minNights) > 0 && tier.discount && parseFloat(tier.discount) > 0)
+            .map(tier => ({
+              minNights: parseInt(tier.minNights),
+              maxNights: tier.maxNights ? parseInt(tier.maxNights) : null,
+              discount: parseFloat(tier.discount)
+            }))
         }
       };
 
@@ -433,51 +504,70 @@ export default function CreateListing() {
             Multi-Night Discounts (Optional)
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Offer discounts for longer stays to attract more bookings
+            Create custom discount tiers for longer stays to attract more bookings
           </Typography>
 
-          <FormControlLabel
-            control={
-              <Switch
-                checked={formData.discountsEnabled}
-                onChange={(e) => handleChange('discountsEnabled', e.target.checked)}
-                color="primary"
-              />
-            }
-            label="Enable multi-night discounts"
-          />
-
-          {formData.discountsEnabled && (
-            <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <TextField
-                fullWidth
-                label="3-6 nights discount (%)"
-                type="number"
-                value={formData.discount3Nights}
-                onChange={(e) => handleChange('discount3Nights', e.target.value)}
-                inputProps={{ min: 0, max: 100, step: 1 }}
-                helperText="e.g., 5 for 5% off"
-              />
-              <TextField
-                fullWidth
-                label="7-13 nights discount (%)"
-                type="number"
-                value={formData.discount7Nights}
-                onChange={(e) => handleChange('discount7Nights', e.target.value)}
-                inputProps={{ min: 0, max: 100, step: 1 }}
-                helperText="e.g., 10 for 10% off"
-              />
-              <TextField
-                fullWidth
-                label="14+ nights discount (%)"
-                type="number"
-                value={formData.discount14Nights}
-                onChange={(e) => handleChange('discount14Nights', e.target.value)}
-                inputProps={{ min: 0, max: 100, step: 1 }}
-                helperText="e.g., 15 for 15% off"
-              />
-            </Box>
-          )}
+          <Box sx={{ mt: 2 }}>
+            {formData.customDiscounts.map((tier, index) => (
+              <Box
+                key={index}
+                sx={{
+                  display: 'flex',
+                  gap: 2,
+                  mb: 2,
+                  p: 2,
+                  border: '1px solid #E5E7EB',
+                  borderRadius: 2,
+                  bgcolor: '#F9FAFB'
+                }}
+              >
+                <TextField
+                  label="Min Nights"
+                  type="number"
+                  value={tier.minNights}
+                  onChange={(e) => updateDiscountTier(index, 'minNights', e.target.value)}
+                  inputProps={{ min: 1, step: 1 }}
+                  sx={{ flex: 1 }}
+                  size="small"
+                />
+                <TextField
+                  label="Max Nights"
+                  type="number"
+                  value={tier.maxNights}
+                  onChange={(e) => updateDiscountTier(index, 'maxNights', e.target.value)}
+                  inputProps={{ min: 1, step: 1 }}
+                  sx={{ flex: 1 }}
+                  size="small"
+                  disabled={index < formData.customDiscounts.length - 1}
+                  helperText={index < formData.customDiscounts.length - 1 ? "Auto-set to next tier's min - 1" : "Leave empty for no limit"}
+                />
+                <TextField
+                  label="Discount (%)"
+                  type="number"
+                  value={tier.discount}
+                  onChange={(e) => updateDiscountTier(index, 'discount', e.target.value)}
+                  inputProps={{ min: 0, max: 100, step: 1 }}
+                  sx={{ flex: 1 }}
+                  size="small"
+                />
+                <IconButton
+                  color="error"
+                  onClick={() => removeDiscountTier(index)}
+                  sx={{ alignSelf: 'center' }}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </Box>
+            ))}
+            <Button
+              variant="outlined"
+              startIcon={<AddIcon />}
+              onClick={addDiscountTier}
+              fullWidth
+            >
+              Add Discount Tier
+            </Button>
+          </Box>
         </Box>
 
         <Box sx={{ mt: { xs: 3, sm: 4 }, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
